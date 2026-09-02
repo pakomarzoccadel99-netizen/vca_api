@@ -46,7 +46,6 @@
         .auth-btn { background: #00ff88; color: black; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); transition: 0.2s; }
         .auth-btn:hover { background: #00cc6a; box-shadow: 0 0 15px rgba(0, 255, 136, 0.6); }
 
-        /* Griglia principale dei contenuti */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left; }
 
         .section-box { 
@@ -82,8 +81,6 @@
 <body>
 
     <div class="main-container">
-        
-        <!-- HEADER -->
         <div class="header">
             <h1>VCA Group eSports</h1>
             <div class="auth-status" id="auth-panel">
@@ -91,16 +88,12 @@
             </div>
         </div>
 
-        <!-- GRIGLIA PRINCIPALE DELLA DASHBOARD -->
         <div class="dashboard-grid">
-
-            <!-- AREA PERSONALE (A TUTTA LARGHEZZA SE ATTIVA) -->
             <div class="section-box full-width" id="personal-area-box" style="display: none;">
                 <h2 class="section-title">👤 Area Personale & Statistiche</h2>
                 <div id="personal-profile-content"></div>
             </div>
 
-            <!-- COMPETIZIONI ATTIVE (A TUTTA LARGHEZZA) -->
             <div class="section-box full-width">
                 <h2 class="section-title">🏆 Competizioni Attive</h2>
                 <div class="comp-grid" id="competitions-list">
@@ -108,16 +101,14 @@
                 </div>
             </div>
 
-            <!-- PROFILO SQUADRA (VISIBILE AI CAPITANI) -->
             <div class="section-box" id="captain-club-section" style="display: none;">
                 <h2 class="section-title">🛡️ Il Tuo Club & Bacheca</h2>
                 <div id="club-content"></div>
             </div>
 
-            <!-- ISCRIZIONE DRAFT PLAYER -->
             <div class="section-box">
                 <h2 class="section-title">🎮 Candidati per il Draft</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">Entra nel pool dei giocatori disponibili per essere acquistati dai club nei tornei Draft.</p>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">Entra nel pool dei giocatori disponibili per essere acquistati.</p>
                 <select id="player-role">
                     <option value="ATT">Attaccante (ATT)</option>
                     <option value="CC">Centrocampista Centrale (CC)</option>
@@ -129,24 +120,22 @@
                 <button class="action-btn" onclick="iscrivitiPlayerDraft()">Candidati con il tuo EA ID</button>
             </div>
 
-            <!-- STANZA DRAFT -->
             <div class="section-box">
                 <h2 class="section-title">🎯 Stanza Draft Live</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">Area di chiamata e assegnazione in tempo reale riservata allo staff e ai capitani.</p>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">Area di chiamata e assegnazione in tempo reale.</p>
                 <button class="action-btn" style="background: #ff00ea; color: white;" onclick="accediDraft()">Accedi alla Stanza Draft</button>
             </div>
 
-            <!-- AREA AMMINISTRAZIONE -->
             <div class="section-box admin-box" id="admin-section">
                 <h2 class="section-title">⚙️ Regia Admin</h2>
-                <p style="color: #aaa; font-size: 13px;">Gestione utenti, approvazione referti e creazione tornei.</p>
+                <p style="color: #aaa; font-size: 13px;">Gestione utenti e referti.</p>
                 <a href="admin_vca.html" class="auth-btn" style="background: #ff00ea; color: white; display: block; text-align: center; margin-top: auto; text-decoration: none; padding: 10px;">Pannello di Controllo</a>
             </div>
-
         </div>
     </div>
 
     <script>
+        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
 
         if (user) {
@@ -187,7 +176,7 @@
         }
 
         async function caricaAreaPersonale() {
-            const res = await fetch(`http://127.0.0.1:8000/api/user/profile/${user.user_id}`);
+            const res = await fetch(`${BACKEND_URL}/api/user/profile/${user.user_id}`);
             const data = await res.json();
             const container = document.getElementById("personal-profile-content");
 
@@ -225,10 +214,10 @@
                     <button class="action-btn" onclick="creaClub()">Crea Club</button>
                 `;
             } else {
-                const resClub = await fetch(`http://127.0.0.1:8000/api/club/details/${user.club_id}`);
+                const resClub = await fetch(`${BACKEND_URL}/api/club/details/${user.club_id}`);
                 const clubData = await resClub.json();
                 
-                const resUsers = await fetch("http://127.0.0.1:8000/api/users/list");
+                const resUsers = await fetch(`${BACKEND_URL}/api/users/list`);
                 const allUsers = await resUsers.json();
 
                 let rosterHtml = clubData.players.length === 0 ? "<p style='font-size:13px; color:#aaa;'>Nessun giocatore in rosa.</p>" : "";
@@ -261,7 +250,7 @@
             const formation = document.getElementById("new-club-formation").value;
             if(!name) return alert("Inserisci il nome del club");
 
-            const res = await fetch("http://127.0.0.1:8000/api/club/create", {
+            const res = await fetch(`${BACKEND_URL}/api/club/create`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ name, formation, owner_id: user.user_id })
@@ -277,7 +266,7 @@
 
         async function aggiungiPlayer() {
             const userId = document.getElementById("selected-user-id").value;
-            const res = await fetch("http://127.0.0.1:8000/api/club/add-player", {
+            const res = await fetch(`${BACKEND_URL}/api/club/add-player`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ club_id: user.club_id, user_id: parseInt(userId) })
@@ -289,7 +278,7 @@
         }
 
         async function rimuoviPlayer(userId) {
-            const res = await fetch("http://127.0.0.1:8000/api/club/remove-player", {
+            const res = await fetch(`${BACKEND_URL}/api/club/remove-player`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ club_id: user.club_id, user_id: userId })
@@ -301,7 +290,7 @@
         }
 
         async function caricaCompetizioni() {
-            const res = await fetch("http://127.0.0.1:8000/api/tournaments");
+            const res = await fetch(`${BACKEND_URL}/api/tournaments`);
             const data = await res.json();
             const container = document.getElementById("competitions-list");
             container.innerHTML = "";
@@ -329,7 +318,7 @@
             if (!user) return alert("Devi accedere per iscriverti!");
             if (!user.club_id) return alert("Devi prima creare una squadra dal tuo profilo club!");
 
-            const res = await fetch("http://127.0.0.1:8000/api/tournaments/register", {
+            const res = await fetch(`${BACKEND_URL}/api/tournaments/register`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ tournament_id: tId, club_id: user.club_id })
@@ -343,7 +332,7 @@
             if (!user) return alert("Devi effettuare l'accesso per candidarti!");
             const role = document.getElementById("player-role").value;
 
-            const res = await fetch("http://127.0.0.1:8000/api/draft/signup-player", {
+            const res = await fetch(`${BACKEND_URL}/api/draft/signup-player`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ gamertag: user.gamertag, role, user_id: user.user_id })

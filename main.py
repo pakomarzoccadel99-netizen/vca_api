@@ -509,3 +509,11 @@ def get_tournament_standings(t_id: int, db: Session = Depends(get_db)):
         team["goal_diff"] = team["goals_for"] - team["goals_against"]
     res.sort(key=lambda x: (x["points"], x["goal_diff"]), reverse=True)
     return res
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/")
+def read_index():
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"message": "VCA Group eSports API Online. index.html non trovato nella cartella."}

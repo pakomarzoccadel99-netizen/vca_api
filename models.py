@@ -29,17 +29,16 @@ class Tournament(Base):
     rules = Column(String)
     max_teams = Column(Integer, default=16)
     matchdays = Column(Integer, default=1)
-    # NUOVI CAMPI SVIZZERA E STATO
-    swiss_rounds = Column(Integer, default=0) # 3, 4 o 5
-    playoff_teams = Column(Integer, default=0) # 8, 16, 32
-    status = Column(String, default="open") # open, closed, active, finished
+    swiss_rounds = Column(Integer, default=0)
+    playoff_teams = Column(Integer, default=0)
+    status = Column(String, default="open")
 
 class TournamentRegistration(Base):
     __tablename__ = "tournament_registrations"
     id = Column(Integer, primary_key=True, index=True)
     tournament_id = Column(Integer)
     club_id = Column(Integer)
-    is_waitlisted = Column(Boolean, default=False) # True se è in lista d'attesa
+    is_waitlisted = Column(Boolean, default=False)
 
 class Match(Base):
     __tablename__ = "matches"
@@ -52,4 +51,4 @@ class Match(Base):
     home_score = Column(Integer, default=0)
     away_score = Column(Integer, default=0)
     is_played = Column(Boolean, default=False)
-    phase = Column(String, default="regular") # "swiss", "playoff_16", "quarti", ecc.
+    phase = Column(String, default="regular")

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Login & Registrazione</title>
+    <style>
+        body { background-color: #0d001a; color: white; font-family: sans-serif; text-align: center; padding: 40px 20px; }
+        .box { background: #1a0033; max-width: 380px; margin: 0 auto; padding: 25px; border-radius: 10px; border: 1px solid #d900ff; }
+        input, button { width: 90%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: #2d004d; color: white; box-sizing: border-box; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        .toggle-btn { background: transparent; color: #ff00ea; text-decoration: underline; cursor: pointer; border: none; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 id="title" style="color: #00ff88;">Accedi a VCA</h2>
+        
+        <!-- Campo unico per il Login -->
+        <input type="text" id="login_id" placeholder="Email o Gamertag / EA ID">
+        
+        <!-- Campi specifici per la Registrazione (Gamertag sopra, Email in mezzo, Password sotto) -->
+        <div id="reg-fields" style="display: none;">
+            <input type="text" id="gamertag" placeholder="Gamertag / EA ID">
+            <input type="email" id="email" placeholder="Indirizzo Email">
+        </div>
+
+        <input type="password" id="password" placeholder="Password">
+
+        <button onclick="submitAuth()" id="action-btn">ACCEDI</button>
+        <p><button class="toggle-btn" onclick="toggleForm()" id="toggle-label">Non hai un account? Registrati</button></p>
+    </div>
+
+    <script>
+        let isRegister = false;
+        function toggleForm() {
+            isRegister = !isRegister;
+            document.getElementById('title').innerText = isRegister ? "Registrati su VCA" : "Accedi a VCA";
+            document.getElementById('reg-fields').style.display = isRegister ? "block" : "none";
+            document.getElementById('login_id').style.display = isRegister ? "none" : "block";
+            document.getElementById('action-btn').innerText = isRegister ? "REGISTRATI" : "ACCEDI";
+            document.getElementById('toggle-label').innerText = isRegister ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
+        }
+
+        async function submitAuth() {
+            const p = document.getElementById('password').value;
+            if(!p) return alert("Inserisci la password");
+
+            const url = isRegister ? "http://127.0.0.1:8000/api/auth/register" : "http://127.0.0.1:8000/api/auth/login";
+            const payload = isRegister ? {
+                gamertag: document.getElementById('gamertag').value,
+                email: document.getElementById('email').value,
+                password: p
+            } : {
+                login_id: document.getElementById('login_id').value,
+                password: p
+            };
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(!res.ok) return alert(data.detail || "Errore");
+
+            if(isRegister) {
+                alert("Registrazione completata! Ora effettua l'accesso.");
+                toggleForm();
+            } else {
+                localStorage.setItem("vca_user", JSON.stringify(data));
+                alert("Accesso effettuato con successo!");
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>

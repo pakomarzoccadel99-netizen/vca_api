@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Stanza Draft & Rose</title>
+    <style>
+        body { background-color: #0d001a; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: 0 auto; background: #1a0033; border: 1px solid #00ff88; border-radius: 12px; padding: 30px; }
+        h2 { color: #00ff88; text-transform: uppercase; margin-top: 0; }
+        select, input, button { width: 90%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: #2d004d; color: white; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: bold; float: left; }
+        .player-box { background: #250046; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #d900ff; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+        .summary-card { background: #250046; border: 1px solid #00ff88; border-radius: 8px; padding: 15px; margin: 10px 0; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Torna alla Home</a>
+        <h2>🎯 Stanza Draft & Gestione Rose</h2>
+        <div id="spectator-banner" style="display:none; background: #ffcc00; color: black; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px;">
+            MODALITÀ SPETTATORE (Capitano Draft): Accesso in sola visualizzazione.
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+            <button onclick="mostraRiepilogoRose()" style="background: #ff00ea; color: white; width: auto; padding: 10px 20px;">Visualizza Riepilogo Rose e Squadre</button>
+        </div>
+
+        <div id="admin-controls" style="border-top: 1px solid #440066; padding-top: 20px;">
+            <h3>Estrai e Assegna Giocatore</h3>
+            <select id="role-select">
+                <option value="ATT">Attaccante (ATT)</option>
+                <option value="CC">Centrocampista Centrale (CC)</option>
+                <option value="ES">Esterno Sinistro (ES)</option>
+                <option value="ED">Esterno Destro (ED)</option>
+                <option value="DIF">Difensore (DIF)</option>
+                <option value="POR">Portiere (POR)</option>
+            </select>
+            <input type="number" id="club-id-input" placeholder="ID Club Assegnatario">
+            <button onclick="pescaGiocatori()">Estrai Giocatori Disponibili</button>
+        </div>
+
+        <div id="results-area"></div>
+        <div id="summary-area" style="margin-top: 30px;"></div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("vca_user"));
+        if (!user) {
+            alert("Devi effettuare l'accesso.");
+            window.location.href = "auth.html";
+        }
+
+        // Verifica permessi di accesso
+        const isAdminOrAuthorized = (user.role === "admin" || user.can_access_draft);
+        const isDraftCaptain = (user.role === "draft_captain");
+
+        if (!isAdminOrAuthorized && !isDraftCaptain) {
+            alert("ACCESSO NEGATO: Non possiedi i permessi per accedere alla Stanza Draft.");
+            window.location.href = "index.html";
+        }
+
+        // Se è un capitano draft, nascondiamo i comandi di controllo/estrazione (modalità spettatore pura)
+        if (isDraftCaptain) {
+            document.getElementById("admin-controls").style.display = "none";
+            document.getElementById("spectator-banner").style.display = "block";
+            // Carichiamo automaticamente il riepilogo rose all'ingresso per comodità dello spettatore
+            mostraRiepilogoRose();
+        }
+
+        async function pescaGiocatori() {
+            const role = document.getElementById("role-select").value;
+            const res = await fetch(`http://127.0.0.1:8000/api/draft/random-players/${role}`);
+            const data = await res.json();
+            
+            const area = document.getElementById("results-area");
+            area.innerHTML = `<h3>Opzioni Estratte (${data.role}):</h3>`;
+            
+            if(!data.options || data.options.length === 0) {
+                area.innerHTML += "<p>Nessun giocatore disponibile per questo ruolo.</p>";
+                return;
+            }
+
+            data.options.forEach(p => {
+                area.innerHTML += `
+                    <div class="player-box">
+                        <span><b>${p.gamertag}</b> [${p.role}]</span>
+                        <button onclick="assegnaGiocatore(${p.id})" style="width: auto; padding: 6px 12px; background: #00ff88;">Assegna</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function assegnaGiocatore(playerId) {
+            const clubId = document.getElementById("club-id-input").value;
+            if(!clubId) return alert("Inserisci l'ID del club destinatario!");
+
+            const res = await fetch("http://127.0.0.1:8000/api/draft/assign", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ player_id: playerId, club_id: parseInt(clubId) })
+            });
+            const data = await res.json();
+            alert(data.message);
+            pescaGiocatori();
+        }
+
+        async function mostraRiepilogoRose() {
+            const res = await fetch("http://127.0.0.1:8000/api/draft/summary");
+            const data = await res.json();
+            const area = document.getElementById("summary-area");
+            
+            area.innerHTML = "<h3>📊 Riepilogo Rose e Stato Squadre</h3>";
+            if(data.length === 0) {
+                area.innerHTML += "<p>Nessun club registrato.</p>";
+                return;
+            }
+
+            data.forEach(c => {
+                const badge = c.is_complete ? 
+                    "<span style='color: #00ff88; font-weight: bold;'>[ROSA COMPLETA ✅]</span>" : 
+                    "<span style='color: #ffcc00; font-weight: bold;'>[Incompleta ⚠️]</span>";
+
+                let playersHtml = c.players.map(p => `<li>${p.gamertag} (${p.role})</li>`).join("");
+                if(!playersHtml) playersHtml = "<li>Nessun giocatore pescato</li>";
+
+                area.innerHTML += `
+                    <div class="summary-card">
+                        <h4 style="margin: 0 0 5px 0; color: #ff00ea;">${c.club_name} ${badge}</h4>
+                        <p style="font-size: 13px; color: #aaa; margin: 0 0 10px 0;">Modulo: ${c.formation} | Ruoli: ATT(${c.roles_breakdown.ATT}) CC(${c.roles_breakdown.CC}) ES(${c.roles_breakdown.ES}) ED(${c.roles_breakdown.ED}) DIF(${c.roles_breakdown.DIF}) POR(${c.roles_breakdown.POR})</p>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 13px;">${playersHtml}</ul>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

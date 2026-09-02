@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta tag essenziale per adattare lo zoom agli schermi degli smartphone -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA Dashboard - Classifiche</title>
+    <style>
+        body { background-color: #0d001a; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+        h1 { color: #d900ff; text-transform: uppercase; margin-bottom: 5px; }
+        p { color: #aaa; margin-top: 0; margin-bottom: 30px; }
+        
+        /* Contenitore scorrevole per il mobile */
+        .table-container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            overflow-x: auto; /* Abilita lo scroll orizzontale su schermi piccoli */
+            background: #1a0033; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #ff00ea; 
+        }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid #440066; }
+        th { color: #00ff88; text-transform: uppercase; font-size: 14px; }
+        tr:hover { background-color: #2d004d; }
+        
+        .team-name { font-weight: bold; color: #ff00ea; text-align: left; font-size: 18px; }
+        .points { font-size: 20px; font-weight: bold; color: white; }
+    </style>
+</head>
+<body>
+    <h1>VCA Live Dashboard</h1>
+    <p>Classifiche aggiornate in tempo reale</p>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="text-align: left;">Club</th>
+                    <th>PT</th>
+                    <th>G</th>
+                    <th>GF</th>
+                    <th>GS</th>
+                    <th>DR</th>
+                </tr>
+            </thead>
+            <tbody id="standings-body">
+                <!-- I dati verranno inseriti qui dal backend -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function caricaClassifica() {
+            try {
+                // Chiama la tua API Python
+                const response = await fetch('http://127.0.0.1:8000/api/standings');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('standings-body');
+                tbody.innerHTML = "";
+                
+                // Genera una riga per ogni squadra
+                data.forEach(team => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="team-name">${team.name}</td>
+                        <td class="points">${team.points}</td>
+                        <td>${team.played}</td>
+                        <td>${team.goals_for}</td>
+                        <td>${team.goals_against}</td>
+                        <td>${team.goal_diff}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Errore nel caricamento della classifica:", error);
+            }
+        }
+
+        // Carica la classifica appena si apre la pagina
+        window.onload = caricaClassifica;
+    </script>
+</body>
+</html>

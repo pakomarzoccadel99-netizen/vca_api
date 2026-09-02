@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Pannello Regia Admin</title>
+    <style>
+        body { background-color: #0d001a; color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .section { background: #1a0033; border: 1px solid #ff00ea; border-radius: 10px; padding: 20px; margin-bottom: 25px; }
+        h2 { color: #ff00ea; margin-top: 0; border-bottom: 1px solid #440066; padding-bottom: 10px; }
+        input, select, button { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #550088; background: #2d004d; color: white; box-sizing: border-box; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #440066; padding: 8px; text-align: left; }
+        th { background: #250046; color: #00ff88; }
+        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Torna alla Home</a>
+        <h1>⚙️ Regia Amministrazione VCA</h1>
+
+        <!-- GESTIONE UTENTI E RUOLI (SOLO ADMIN) -->
+        <div class="section" id="role-section" style="display:none;">
+            <h2>👥 Gestione Utenti, Email & Ruoli</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gamertag / EA ID</th>
+                        <th>Email (Visibile solo Admin)</th>
+                        <th>Club</th>
+                        <th>Ruolo</th>
+                        <th>Cambia Ruolo</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <tr><td colspan="5">Caricamento utenti...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CREAZIONE TORNEI / CAMPIONATI -->
+        <div class="section">
+            <h2>🏆 Crea Competizione</h2>
+            <input type="text" id="t-name" placeholder="Nome Competizione (es. Serie A VCA)">
+            <select id="t-format">
+                <option value="league">Campionato (Andata e Ritorno)</option>
+                <option value="group">Gironi (Solo Andata)</option>
+                <option value="swiss">Torneo Swiss (Svizzero)</option>
+                <option value="draft">Torneo Draft</option>
+            </select>
+            <input type="text" id="t-rules" placeholder="Regolamento breve">
+            <button onclick="CreaTorneo()">Crea Competizione</button>
+        </div>
+
+        <!-- APPROVAZIONE REFERTI -->
+        <div class="section">
+            <h2>📝 Approvazione Risultati & Referti</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Match ID</th>
+                        <th>Squadra Casa</th>
+                        <th>Squadra Ospite</th>
+                        <th>Risultato</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-matches-body">
+                    <tr><td colspan="5">Nessun referto in attesa.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("vca_user"));
+        if (!user || (user.role !== "admin" && user.role !== "event_admin")) {
+            alert("Accesso negato: Area riservata allo staff.");
+            window.location.href = "index.html";
+        }
+
+        if (user.role === "admin") {
+            document.getElementById("role-section").style.display = "block";
+            caricaUtenti();
+        }
+
+        async function caricaUtenti() {
+            const res = await fetch("http://127.0.0.1:8000/api/admin/users");
+            const data = await res.json();
+            const tbody = document.getElementById("users-table-body");
+            tbody.innerHTML = "";
+
+            data.forEach(u => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${u.gamertag}</b></td>
+                        <td style="color: #ff00ea;">${u.email}</td>
+                        <td>${u.club_name}</td>
+                        <td>${u.role.toUpperCase()}</td>
+                        <td>
+                            <select id="role-${u.id}" onchange="cambiaRuolo(${u.id})">
+                                <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                                <option value="event_admin" ${u.role==='event_admin'?'selected':''}>Admin Evento</option>
+                                <option value="captain" ${u.role==='captain'?'selected':''}>Capitano</option>
+                                <option value="vice_captain" ${u.role==='vice_captain'?'selected':''}>Vice Capitano</option>
+                                <option value="draft_captain" ${u.role==='draft_captain'?'selected':''}>Capitano Draft</option>
+                                <option value="user" ${u.role==='user'?'selected':''}>Utente</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function cambiaRuolo(userId) {
+            const newRole = document.getElementById(`role-${userId}`).value;
+            const res = await fetch("http://127.0.0.1:8000/api/admin/set-role", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ user_id: userId, new_role: newRole })
+            });
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        async function CreaTorneo() {
+            const name = document.getElementById("t-name").value;
+            const format_type = document.getElementById("t-format").value;
+            const rules = document.getElementById("t-rules").value;
+
+            if(!name) return alert("Inserisci il nome della competizione");
+
+            const res = await fetch("http://127.0.0.1:8000/api/tournaments", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ name, format_type, rules })
+            });
+            const data = await res.json();
+            alert(data.message);
+            location.reload();
+        }
+    </script>
+</body>
+</html>

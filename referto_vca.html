@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Compila Referto Campionato</title>
+    <style>
+        body { background-color: #0d001a; color: white; font-family: sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 650px; margin: 0 auto; background: #1a0033; border: 1px solid #d900ff; border-radius: 12px; padding: 30px; }
+        h2 { color: #00ff88; text-transform: uppercase; margin-top: 0; }
+        input, select, button { width: 90%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: #2d004d; color: white; box-sizing: border-box; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: bold; float: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Torna alla Home</a>
+        <h2>Compila Referto Campionato</h2>
+        <p style="color: #aaa; font-size: 14px;">Riservato ai capitani per l'invio del risultato e delle statistiche individuali.</p>
+        
+        <input type="number" id="tournament_id" placeholder="ID Campionato">
+        <input type="number" id="home_team_id" placeholder="ID Squadra di Casa">
+        <input type="number" id="away_team_id" placeholder="ID Squadra in Trasferta">
+        <input type="number" id="home_score" placeholder="Gol Squadra Casa">
+        <input type="number" id="away_score" placeholder="Gol Squadra Trasferta">
+        
+        <hr style="border-color: #440066; margin: 20px 0;">
+        <h3>Statistiche Singoli Giocatori (Opzionale)</h3>
+        <input type="number" id="stat-player-id" placeholder="ID Giocatore">
+        <input type="number" id="stat-goals" placeholder="Gol segnati da questo giocatore">
+        <input type="number" id="stat-assists" placeholder="Assist fatti da questo giocatore">
+        <button onclick="aggiungiStatPlayer()" style="background: #ff00ea; color: white; width: auto; padding: 8px 15px;">Aggiungi Statistica Giocatore</button>
+        <ul id="stats-list" style="text-align: left; font-size: 13px; color: #00ff88; padding-left: 20px;"></ul>
+
+        <button onclick="inviaReferto()" style="margin-top: 20px;">Invia Referto Ufficialmente</button>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("vca_user"));
+        if (!user) {
+            alert("Devi effettuare l'accesso.");
+            window.location.href = "auth.html";
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tId = urlParams.get('t_id');
+        if (tId) document.getElementById("tournament_id").value = tId;
+
+        let playerStatsArray = [];
+
+        function aggiungiStatPlayer() {
+            const pId = parseInt(document.getElementById("stat-player-id").value);
+            const goals = parseInt(document.getElementById("stat-goals").value) || 0;
+            const assists = parseInt(document.getElementById("stat-assists").value) || 0;
+
+            if(!pId) return alert("Inserisci l'ID del giocatore");
+
+            playerStatsArray.push({ player_id: pId, goals: goals, assists: assists });
+            
+            const list = document.getElementById("stats-list");
+            list.innerHTML += `<li>Giocatore ID ${pId}: ${goals} Gol, ${assists} Assist</li>`;
+
+            document.getElementById("stat-player-id").value = "";
+            document.getElementById("stat-goals").value = "";
+            document.getElementById("stat-assists").value = "";
+        }
+
+        async function inviaReferto() {
+            const tournament_id = parseInt(document.getElementById("tournament_id").value);
+            const home_team_id = parseInt(document.getElementById("home_team_id").value);
+            const away_team_id = parseInt(document.getElementById("away_team_id").value);
+            const home_score = parseInt(document.getElementById("home_score").value);
+            const away_score = parseInt(document.getElementById("away_score").value);
+
+            if (!tournament_id || isNaN(home_score) || isNaN(away_score)) {
+                return alert("Compila correttamente i campi principali.");
+            }
+
+            const res = await fetch("http://127.0.0.1:8000/api/matches/submit-league", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ 
+                    tournament_id, home_team_id, away_team_id, home_score, away_score, 
+                    player_stats: playerStatsArray 
+                })
+            });
+
+            const data = await res.json();
+            if (!res.ok) return alert(data.detail || "Errore nell'invio");
+
+            alert(data.message);
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

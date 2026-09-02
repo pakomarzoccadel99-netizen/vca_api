@@ -13,8 +13,11 @@
         th, td { border: 1px solid #440066; padding: 10px; text-align: left; }
         th { background: #1a0033; color: #00ff88; }
         input, select, button { padding: 8px; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; margin: 5px 2px; }
-        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
         button:hover { background: #00cc6a; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .badge.open { background: #00ff88; color: black; }
+        .badge.closed { background: #ff0055; color: white; }
         .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
@@ -23,50 +26,60 @@
         <a href="/" style="color: #00ff88; text-decoration: none; font-weight: bold;">← Torna alla Home</a>
         <h1 style="color: white; margin-bottom: 30px;">⚙️ Regia Amministrazione VCA</h1>
 
+        <!-- GESTIONE UTENTI E SVINCOLI -->
         <div class="admin-section">
             <h3>👥 Gestione Utenti & Svincoli</h3>
             <table>
-                <thead>
-                    <tr><th>Gamertag</th><th>Email</th><th>Club</th><th>Ruolo</th><th>Cambia Ruolo</th><th>Svincolo</th></tr>
-                </thead>
-                <tbody id="users-table"><tr><td colspan="6">Caricamento...</td></tr></tbody>
+                <thead><tr><th>Gamertag</th><th>Club</th><th>Ruolo</th><th>Cambia Ruolo</th><th>Svincolo</th></tr></thead>
+                <tbody id="users-table"><tr><td colspan="5">Caricamento...</td></tr></tbody>
             </table>
         </div>
 
+        <!-- CREA COMPETIZIONE -->
         <div class="admin-section">
             <h3>🏆 Crea Competizione</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="t-name" placeholder="Nome Competizione (es. Serie A)" style="flex: 1; min-width: 200px;">
-                <select id="t-format">
+                <input type="text" id="t-name" placeholder="Nome (es. VCA Pro League)" style="flex: 1; min-width: 200px;">
+                <select id="t-format" onchange="checkSwissOptions()">
                     <option value="Campionato a Punti">Campionato a Punti</option>
+                    <option value="Svizzera">Sistema Svizzero</option>
                     <option value="Coppa a Eliminazione">Coppa a Eliminazione</option>
                     <option value="Gironi">Fase a Gironi</option>
-                    <option value="Svizzera">Sistema Svizzero</option>
                     <option value="Draft">Torneo Draft</option>
                 </select>
                 <select id="t-matchdays">
-                    <option value="1">Solo Andata / Partita Secca</option>
+                    <option value="1">Partita Secca / Solo Andata</option>
                     <option value="2">Andata e Ritorno</option>
                 </select>
                 <input type="number" id="t-max-teams" placeholder="Max Squadre (es. 16)" style="width: 150px;">
                 <input type="text" id="t-rules" placeholder="Regolamento breve..." style="flex: 1; min-width: 200px;">
-                <button onclick="creaCompetizione()">Crea</button>
             </div>
+            
+            <!-- OPZIONI AGGIUNTIVE PER SVIZZERA (Nascoste di base) -->
+            <div id="swiss-options" style="display: none; gap: 10px; margin-top: 10px; padding: 10px; background: rgba(255,0,234,0.1); border-radius: 6px; border: 1px solid #ff00ea;">
+                <b style="color:#ff00ea; display:flex; align-items:center;">Impostazioni Svizzera:</b>
+                <input type="number" id="t-swiss-rounds" placeholder="N° Round Gironi (es. 3)" style="width: 180px;">
+                <input type="number" id="t-playoff-teams" placeholder="Squadre in Fase Finale (es. 8)" style="width: 220px;">
+            </div>
+            
+            <button onclick="creaCompetizione()" style="margin-top: 15px; width: 100%;">Crea Competizione</button>
         </div>
 
+        <!-- GESTIONE COMPETIZIONI E CHIUSURA ISCRIZIONI -->
         <div class="admin-section">
-            <h3>🗑️ Gestione Competizioni Esistenti</h3>
+            <h3>🗑️ Gestione Iscrizioni & Tornei</h3>
             <table>
                 <thead>
-                    <tr><th>Nome Torneo</th><th>Formato</th><th>Squadre Iscritte</th><th>Azione</th></tr>
+                    <tr><th>Nome Torneo</th><th>Stato Iscrizioni</th><th>Iscritti + Attesa</th><th>Azioni Rapide</th></tr>
                 </thead>
                 <tbody id="tournaments-table"><tr><td colspan="4">Caricamento...</td></tr></tbody>
             </table>
         </div>
 
+        <!-- GENERATORE CALENDARIO BASE -->
         <div class="admin-section">
             <h3>📅 Generatore Automatico Calendario</h3>
-            <p style="font-size: 13px; color: #ccc;">Scegli il torneo, la data di inizio e i giorni in cui si giocherà. Il sistema creerà il calendario incrociando le squadre e assegnando le date!</p>
+            <p style="font-size: 13px; color: #ccc;">Scegli il torneo e la data di inizio. Le squadre ufficiali verranno incrociate.</p>
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                 <select id="cal-tournament" style="flex: 1;"></select>
                 <input type="date" id="cal-start-date" title="Data di inizio campionato">
@@ -84,83 +97,77 @@
             </div>
             <button onclick="generaCalendario()" style="background: #ff00ea; color: white; width: 100%; margin-top: 10px;">Genera Calendario Ufficiale</button>
         </div>
-
     </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        if (!user || user.role !== "admin") {
-            alert("Accesso negato. Area riservata agli Admin.");
-            window.location.href = "index.html";
+        if (!user || user.role !== "admin") { window.location.href = "index.html"; }
+
+        function checkSwissOptions() {
+            const format = document.getElementById("t-format").value;
+            document.getElementById("swiss-options").style.display = (format === "Svizzera") ? "flex" : "none";
         }
 
         async function caricaDati() {
-            // Carica Utenti
+            // Tabella Utenti
             const resU = await fetch("/api/admin/users");
             const users = await resU.json();
             let htmlU = "";
             users.forEach(u => {
                 htmlU += `<tr>
                     <td><b>${u.gamertag}</b></td>
-                    <td style="color:#aaa;">${u.email}</td>
                     <td>${u.club_name ? u.club_name : '<span style="color:#ff0055">Svincolato</span>'}</td>
                     <td><b>${u.role.toUpperCase()}</b></td>
                     <td>
                         <select id="role-${u.id}">
                             <option value="user" ${u.role==='user'?'selected':''}>User</option>
                             <option value="captain" ${u.role==='captain'?'selected':''}>Capitano</option>
-                            <option value="draft_captain" ${u.role==='draft_captain'?'selected':''}>Cap Draft</option>
                             <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
                         </select>
-                        <button onclick="cambiaRuolo(${u.id})" style="padding:4px;">Salva</button>
+                        <button onclick="cambiaRuolo(${u.id})">Salva</button>
                     </td>
-                    <td>
-                        ${u.club_name ? `<button onclick="svincolaGiocatore(${u.id})" style="background:#ff0055; color:white; padding:4px;">Forza Svincolo</button>` : '-'}
-                    </td>
+                    <td>${u.club_name ? `<button onclick="svincolaGiocatore(${u.id})" style="background:#ff0055; color:white;">Svincola</button>` : '-'}</td>
                 </tr>`;
             });
             document.getElementById("users-table").innerHTML = htmlU;
 
-            // Carica Tornei per Eliminazione e per Calendario
+            // Tabella Tornei
             const resT = await fetch("/api/tournaments");
             const tourneys = await resT.json();
-            
+            let tableT = "";
             let selectT = document.getElementById("cal-tournament");
             selectT.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
-            let tableT = "";
 
-            if (tourneys.length === 0) tableT = '<tr><td colspan="4">Nessuna competizione creata.</td></tr>';
-            
             tourneys.forEach(t => {
-                selectT.innerHTML += `<option value="${t.id}">${t.name} (Max ${t.max_teams} Sq, ${t.teams_count} Iscritte)</option>`;
+                selectT.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+                
+                let badge = t.status === "open" ? '<span class="badge open">APERTE</span>' : '<span class="badge closed">CHIUSE</span>';
+                let btnStatus = t.status === "open" ? 
+                    `<button onclick="toggleIscrizioni(${t.id})" style="background:#ff9900; margin-bottom:4px; width:100%;">Chiudi Iscrizioni</button>` : 
+                    `<button onclick="toggleIscrizioni(${t.id})" style="background:#00ff88; color:black; margin-bottom:4px; width:100%;">Riapri Iscrizioni</button>`;
+                
                 tableT += `<tr>
-                    <td><b>${t.name}</b></td>
-                    <td>${t.format_type}</td>
-                    <td>${t.teams_count} / ${t.max_teams}</td>
-                    <td><button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; padding:6px;">Elimina Torneo</button></td>
+                    <td><b>${t.name}</b><br><span style="font-size:11px; color:#aaa;">${t.format_type}</span></td>
+                    <td>${badge}</td>
+                    <td>Ufficiali: <b>${t.teams_count}/${t.max_teams}</b><br>Attesa: <b style="color:#ff00ea;">${t.waitlist_count}</b></td>
+                    <td>
+                        ${btnStatus}
+                        <button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; width:100%;">Elimina Torneo</button>
+                    </td>
                 </tr>`;
             });
-            document.getElementById("tournaments-table").innerHTML = tableT;
+            document.getElementById("tournaments-table").innerHTML = tableT || '<tr><td colspan="4">Nessun torneo</td></tr>';
         }
 
         async function cambiaRuolo(id) {
             const role = document.getElementById(`role-${id}`).value;
-            await fetch("/api/admin/set-role", {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ user_id: id, new_role: role })
-            });
-            alert("Ruolo aggiornato!");
+            await fetch("/api/admin/set-role", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id, new_role: role }) });
             caricaDati();
         }
 
         async function svincolaGiocatore(id) {
-            if(!confirm("Sicuro di voler svincolare questo giocatore dal suo club?")) return;
-            const res = await fetch("/api/admin/force-remove-player", {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ user_id: id })
-            });
-            const data = await res.json();
-            alert(data.message);
+            if(!confirm("Sicuro di voler svincolare il giocatore?")) return;
+            await fetch("/api/admin/force-remove-player", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id }) });
             caricaDati();
         }
 
@@ -170,22 +177,25 @@
                 format_type: document.getElementById("t-format").value,
                 matchdays: parseInt(document.getElementById("t-matchdays").value) || 1,
                 max_teams: parseInt(document.getElementById("t-max-teams").value) || 16,
-                rules: document.getElementById("t-rules").value
+                rules: document.getElementById("t-rules").value,
+                swiss_rounds: parseInt(document.getElementById("t-swiss-rounds").value) || 0,
+                playoff_teams: parseInt(document.getElementById("t-playoff-teams").value) || 0
             };
-            await fetch("/api/tournaments", {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(payload)
-            });
+            if(!payload.name) return alert("Inserisci il nome del torneo!");
+            
+            await fetch("/api/tournaments", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload) });
             alert("Competizione creata!");
             caricaDati();
         }
 
+        async function toggleIscrizioni(id) {
+            await fetch(`/api/admin/toggle-tournament/${id}`, { method: "POST" });
+            caricaDati();
+        }
+
         async function eliminaCompetizione(id) {
-            if(!confirm("ATTENZIONE: Sei sicuro di voler ELIMINARE DEFINITIVAMENTE questo torneo? Verranno cancellate tutte le iscrizioni e il calendario associato!")) return;
-            
-            const res = await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" });
-            const data = await res.json();
-            alert(data.message || "Torneo eliminato.");
+            if(!confirm("Vuoi ELIMINARE DEFINITIVAMENTE questo torneo e tutti i suoi iscritti/partite?")) return;
+            await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" });
             caricaDati();
         }
 
@@ -196,18 +206,14 @@
             let days = [];
             checkboxes.forEach(cb => days.push(parseInt(cb.value)));
 
-            if(!tid) return alert("Seleziona un torneo!");
-            if(!sDate) return alert("Inserisci la data di inizio!");
-            if(days.length === 0) return alert("Seleziona almeno un giorno della settimana in cui si giocherà!");
-
-            if(!confirm("Generare il calendario? L'operazione sovrascriverà eventuali calendari già esistenti per questo torneo.")) return;
+            if(!tid || !sDate || days.length === 0) return alert("Compila tutti i campi e scegli i giorni di gioco.");
+            if(!confirm("Generare il calendario? Sovrascriverà quelli esistenti per questo torneo.")) return;
 
             const res = await fetch("/api/admin/generate-calendar", {
                 method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ tournament_id: parseInt(tid), start_date: sDate, play_days: days })
             });
             const data = await res.json();
-            
             if(res.ok) alert("✅ " + data.message);
             else alert("⚠️ " + data.detail);
         }

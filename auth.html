@@ -1,21 +1,13 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA - Login & Registrazione</title>
     <style>
-        body { 
-            background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%);
-            background-attachment: fixed;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            padding: 40px 20px; 
-        }
+        body { background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%); background-attachment: fixed; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px 20px; }
         .box { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); max-width: 380px; margin: 0 auto; padding: 25px; border-radius: 10px; border: 1px solid #d900ff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
-        input, button { width: 90%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #00ff88; box-shadow: 0 0 8px rgba(0, 255, 136, 0.3); }
+        input, button { width: 90%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; }
+        input:focus { border-color: #00ff88; }
         button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
         button:hover { background: #00cc6a; }
         .toggle-btn { background: transparent; color: #ff00ea; text-decoration: underline; cursor: pointer; border: none; }
@@ -24,24 +16,19 @@
 <body>
     <div class="box">
         <h2 id="title" style="color: #00ff88;">Accedi a VCA</h2>
-        
         <input type="text" id="login_id" placeholder="Email o Gamertag / EA ID">
-        
         <div id="reg-fields" style="display: none;">
             <input type="text" id="gamertag" placeholder="Gamertag / EA ID">
             <input type="email" id="email" placeholder="Indirizzo Email">
         </div>
-
         <input type="password" id="password" placeholder="Password">
-
         <button onclick="submitAuth()" id="action-btn">ACCEDI</button>
         <p><button class="toggle-btn" onclick="toggleForm()" id="toggle-label">Non hai un account? Registrati</button></p>
     </div>
-
+    
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         let isRegister = false;
-
+        
         function toggleForm() {
             isRegister = !isRegister;
             document.getElementById('title').innerText = isRegister ? "Registrati su VCA" : "Accedi a VCA";
@@ -50,66 +37,41 @@
             document.getElementById('action-btn').innerText = isRegister ? "REGISTRATI" : "ACCEDI";
             document.getElementById('toggle-label').innerText = isRegister ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
         }
-
+        
         async function submitAuth() {
             const p = document.getElementById('password').value;
-            if(!p) return alert("Inserisci la password");
+            if(!p) return alert("Inserisci la password!");
 
-            const url = isRegister ? `${BACKEND_URL}/api/auth/register` : `${BACKEND_URL}/api/auth/login`;
-            const payload = isRegister ? {
-                gamertag: document.getElementById('gamertag').value,
-                email: document.getElementById('email').value,
-                password: p
-            } : {
-                login_id: document.getElementById('login_id').value,
-                password: p
-            };
-
-            const res = await fetch(url, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if(!res.ok) return alert(data.detail || "Errore");
-
-            if(isRegister) {
-                alert("Registrazione completata! Ora effettua l'accesso.");
-                toggleForm();
-            } else {
-                localStorage.setItem("vca_user", JSON.stringify(data));
-                alert("Accesso effettuato con successo!");
-                window.location.href = "index.html";
+            const url = isRegister ? "/api/auth/register" : "/api/auth/login";
+            const payload = isRegister 
+                ? { gamertag: document.getElementById('gamertag').value, email: document.getElementById('email').value, password: p } 
+                : { login_id: document.getElementById('login_id').value, password: p };
+            
+            try {
+                const res = await fetch(url, { 
+                    method: "POST", 
+                    headers: {"Content-Type": "application/json"}, 
+                    body: JSON.stringify(payload) 
+                });
+                
+                const data = await res.json();
+                
+                if(!res.ok) {
+                    alert("⚠️ Errore: " + (data.detail || "Dati non validi"));
+                    return;
+                }
+                
+                if(isRegister) { 
+                    alert("✅ Registrazione completata! Ora effettua l'accesso."); 
+                    toggleForm(); 
+                } else { 
+                    localStorage.setItem("vca_user", JSON.stringify(data)); 
+                    window.location.href = "/"; 
+                }
+            } catch(e) {
+                alert("❌ Errore critico: il server non risponde.");
             }
         }
     </script>
 </body>
 </html>
-from fastapi.responses import FileResponse
-import os
-
-@app.get("/")
-def read_index():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "index.html non trovato"}
-
-@app.get("/auth.html")
-def read_auth():
-    return FileResponse("auth.html")
-
-@app.get("/admin_vca.html")
-def read_admin():
-    return FileResponse("admin_vca.html")
-
-@app.get("/draft_vca.html")
-def read_draft():
-    return FileResponse("draft_vca.html")
-
-@app.get("/dashboard_vca.html")
-def read_dashboard():
-    return FileResponse("dashboard_vca.html")
-
-@app.get("/referto_vca.html")
-def read_referto():
-    return FileResponse("referto_vca.html")

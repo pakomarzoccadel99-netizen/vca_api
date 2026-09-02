@@ -77,7 +77,23 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 @app.get("/api/tournaments")
 def get_tournaments(db: Session = Depends(get_db)):
     return db.query(models.Tournament).all()
+class RoleUpdate(BaseModel):
+    user_id: int
+    new_role: str
 
+@app.post("/api/admin/set-role")
+def set_role(data: RoleUpdate, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    user.role = data.new_role
+    db.commit()
+    return {"message": f"Ruolo di {user.gamertag} aggiornato a {data.new_role}"}
+
+@app.get("/api/admin/users")
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(models.User).all()
+    return [{"id": u.id, "gamertag": u.gamertag, "email": u.email, "role": u.role, "club_name": u.club_id} for u in users]
 @app.get("/")
 def read_root():
     if os.path.exists("index.html"):

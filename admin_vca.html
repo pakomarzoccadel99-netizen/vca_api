@@ -38,17 +38,30 @@
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <input type="text" id="t-name" placeholder="Nome Competizione (es. Serie A)" style="flex: 1; min-width: 200px;">
                 <select id="t-format">
-                    <option value="league">Campionato a Punti</option>
-                    <option value="cup">Coppa a Eliminazione</option>
+                    <option value="Campionato a Punti">Campionato a Punti</option>
+                    <option value="Coppa a Eliminazione">Coppa a Eliminazione</option>
+                    <option value="Gironi">Fase a Gironi</option>
+                    <option value="Svizzera">Sistema Svizzero</option>
+                    <option value="Draft">Torneo Draft</option>
                 </select>
                 <select id="t-matchdays">
-                    <option value="1">Solo Andata</option>
+                    <option value="1">Solo Andata / Partita Secca</option>
                     <option value="2">Andata e Ritorno</option>
                 </select>
                 <input type="number" id="t-max-teams" placeholder="Max Squadre (es. 16)" style="width: 150px;">
                 <input type="text" id="t-rules" placeholder="Regolamento breve..." style="flex: 1; min-width: 200px;">
                 <button onclick="creaCompetizione()">Crea</button>
             </div>
+        </div>
+
+        <div class="admin-section">
+            <h3>🗑️ Gestione Competizioni Esistenti</h3>
+            <table>
+                <thead>
+                    <tr><th>Nome Torneo</th><th>Formato</th><th>Squadre Iscritte</th><th>Azione</th></tr>
+                </thead>
+                <tbody id="tournaments-table"><tr><td colspan="4">Caricamento...</td></tr></tbody>
+            </table>
         </div>
 
         <div class="admin-section">
@@ -82,12 +95,12 @@
         }
 
         async function caricaDati() {
-            // Utenti
+            // Carica Utenti
             const resU = await fetch("/api/admin/users");
             const users = await resU.json();
-            let html = "";
+            let htmlU = "";
             users.forEach(u => {
-                html += `<tr>
+                htmlU += `<tr>
                     <td><b>${u.gamertag}</b></td>
                     <td style="color:#aaa;">${u.email}</td>
                     <td>${u.club_name ? u.club_name : '<span style="color:#ff0055">Svincolato</span>'}</td>
@@ -106,16 +119,28 @@
                     </td>
                 </tr>`;
             });
-            document.getElementById("users-table").innerHTML = html;
+            document.getElementById("users-table").innerHTML = htmlU;
 
-            // Tornei per Dropdown Calendario
+            // Carica Tornei per Eliminazione e per Calendario
             const resT = await fetch("/api/tournaments");
             const tourneys = await resT.json();
+            
             let selectT = document.getElementById("cal-tournament");
             selectT.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
+            let tableT = "";
+
+            if (tourneys.length === 0) tableT = '<tr><td colspan="4">Nessuna competizione creata.</td></tr>';
+            
             tourneys.forEach(t => {
                 selectT.innerHTML += `<option value="${t.id}">${t.name} (Max ${t.max_teams} Sq, ${t.teams_count} Iscritte)</option>`;
+                tableT += `<tr>
+                    <td><b>${t.name}</b></td>
+                    <td>${t.format_type}</td>
+                    <td>${t.teams_count} / ${t.max_teams}</td>
+                    <td><button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; padding:6px;">Elimina Torneo</button></td>
+                </tr>`;
             });
+            document.getElementById("tournaments-table").innerHTML = tableT;
         }
 
         async function cambiaRuolo(id) {
@@ -152,6 +177,15 @@
                 body: JSON.stringify(payload)
             });
             alert("Competizione creata!");
+            caricaDati();
+        }
+
+        async function eliminaCompetizione(id) {
+            if(!confirm("ATTENZIONE: Sei sicuro di voler ELIMINARE DEFINITIVAMENTE questo torneo? Verranno cancellate tutte le iscrizioni e il calendario associato!")) return;
+            
+            const res = await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" });
+            const data = await res.json();
+            alert(data.message || "Torneo eliminato.");
             caricaDati();
         }
 

@@ -64,12 +64,24 @@ class TournamentCreate(BaseModel):
 class CalendarGenerate(BaseModel):
     tournament_id: int
     start_date: str
-    play_days: List[int] # Es. [1, 3] = Martedì, Giovedì (Lunedì = 0)
+    play_days: List[int]
 
 class TournamentRegister(BaseModel):
     tournament_id: int
     club_id: int
 
+class PlayerStat(BaseModel):
+    player_id: int
+    goals: int
+    assists: int
+
+class MatchSubmit(BaseModel):
+    tournament_id: int
+    home_team_id: int
+    away_team_id: int
+    home_score: int
+    away_score: int
+    player_stats: List[PlayerStat] = []
 
 # --- API AUTH E PROFILO ---
 @app.post("/api/auth/register")
@@ -98,7 +110,6 @@ def profile(user_id: int, db: Session = Depends(get_db)):
         "stats": {"goals": user.goals, "assists": user.assists, "matches_played": user.matches_played}
     }
 
-
 # --- API ADMIN E UTENTI ---
 @app.post("/api/admin/set-role")
 def set_role(data: RoleUpdate, db: Session = Depends(get_db)):
@@ -126,7 +137,6 @@ def list_users(db: Session = Depends(get_db)):
         res.append({"id": u.id, "gamertag": u.gamertag, "email": u.email, "role": u.role, "club_name": club.name if club else None})
     return res
 
-
 # --- API CLUB ---
 @app.post("/api/club/create")
 def create_club(data: ClubCreate, db: Session = Depends(get_db)):
@@ -149,6 +159,19 @@ def get_club(club_id: int, db: Session = Depends(get_db)):
     players = db.query(models.User).filter(models.User.club_id == club.id).all()
     return {"name": club.name, "formation": club.formation, "players": [{"user_id": p.id, "gamertag": p.gamertag, "role": p.role, "goals": p.goals, "assists": p.assists, "matches_played": p.matches_played} for p in players]}
 
+@app.post("/api/club/add-player")
+def add_player(data: PlayerAction, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    user.club_id = data.club_id
+    db.commit()
+    return {"message": "Aggiunto"}
+
+@app.post("/api/club/remove-player")
+def remove_player(data: PlayerAction, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    user.club_id = None
+    db.commit()
+    return {"message": "Rimosso"}
 
 # --- API TORNEI & CALENDARIO ---
 @app.get("/api/tournaments")
@@ -167,6 +190,39 @@ def create_tournament(data: TournamentCreate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Competizione creata"}
 
+# NUOVO: L'Admin può eliminare un torneo e tutti i suoi dati
+@app.post("/api/admin/delete-tournament/{t_id}")
+def delete_tournament(t_id: int, db: Session = Depends(get_db)):
+    t = db.query(models.Tournament).filter(models.Tournament.id == t_id).first()
+    if not t: raise HTTPException(status_code=404, detail="Torneo non trovato")
+    db.query(models.Match).filter(models.Match.tournament_id == t_id).delete()
+    db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == t_id).delete()
+    db.delete(t)
+    db.commit()
+    return {"message": "Competizione eliminata con successo!"}
+
+# AGGIORNATO: Iscrizione di un club da parte del Capitano
+@app.post("/api/tournaments/register")
+def register_tournament(data: TournamentRegister, db: Session = Depends(get_db)):
+    t = db.query(models.Tournament).filter(models.Tournament.id == data.tournament_id).first()
+    if not t: raise HTTPException(status_code=404, detail="Torneo non trovato")
+    
+    # Controlla se è già iscritto
+    existing = db.query(models.TournamentRegistration).filter(
+        models.TournamentRegistration.tournament_id == data.tournament_id, 
+        models.TournamentRegistration.club_id == data.club_id
+    ).first()
+    if existing: raise HTTPException(status_code=400, detail="Il tuo club è già iscritto a questo torneo.")
+    
+    # Controlla limite squadre
+    current_count = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == data.tournament_id).count()
+    if current_count >= t.max_teams:
+        raise HTTPException(status_code=400, detail="Numero massimo di squadre raggiunto per questo torneo.")
+        
+    db.add(models.TournamentRegistration(tournament_id=data.tournament_id, club_id=data.club_id))
+    db.commit()
+    return {"message": "Club iscritto con successo!"}
+
 @app.post("/api/admin/generate-calendar")
 def generate_calendar(data: CalendarGenerate, db: Session = Depends(get_db)):
     t = db.query(models.Tournament).filter(models.Tournament.id == data.tournament_id).first()
@@ -176,27 +232,22 @@ def generate_calendar(data: CalendarGenerate, db: Session = Depends(get_db)):
     team_ids = [r.club_id for r in regs]
     
     if len(team_ids) < 2: raise HTTPException(status_code=400, detail="Servono almeno 2 squadre iscritte.")
-    if len(team_ids) % 2 != 0: team_ids.append(None) # Team fantasma per il "Riposo"
+    if len(team_ids) % 2 != 0: team_ids.append(None)
 
     num_teams = len(team_ids)
     total_rounds = num_teams - 1
     total_matchdays = total_rounds * t.matchdays
 
-    # Calcolo delle date esatte in base ai giorni selezionati dall'Admin
     current_date = datetime.strptime(data.start_date, "%Y-%m-%d")
     matchday_dates = {}
     day_counter = 1
-    
     while day_counter <= total_matchdays:
         if current_date.weekday() in data.play_days:
             matchday_dates[day_counter] = current_date.strftime("%Y-%m-%d")
             day_counter += 1
         current_date += timedelta(days=1)
 
-    # Pulizia vecchio calendario
     db.query(models.Match).filter(models.Match.tournament_id == t.id).delete()
-
-    # Algoritmo Round Robin (Girone all'italiana)
     matches = []
     teams = list(team_ids)
     
@@ -208,9 +259,8 @@ def generate_calendar(data: CalendarGenerate, db: Session = Depends(get_db)):
             away = teams[num_teams - 1 - i]
             if home is not None and away is not None:
                 matches.append(models.Match(tournament_id=t.id, home_team_id=home, away_team_id=away, matchday=matchday, play_date=play_date))
-        teams.insert(1, teams.pop()) # Ruota le squadre
+        teams.insert(1, teams.pop())
 
-    # Se Andata e Ritorno (matchdays = 2), inverte il girone
     if t.matchdays == 2:
         for round_idx in range(total_rounds):
             matchday = total_rounds + round_idx + 1
@@ -224,8 +274,30 @@ def generate_calendar(data: CalendarGenerate, db: Session = Depends(get_db)):
 
     db.add_all(matches)
     db.commit()
-    return {"message": f"Calendario generato per {len(regs)} squadre! (Totale {total_matchdays} giornate)"}
+    return {"message": f"Calendario generato per {len(regs)} squadre!"}
 
+# --- API DRAFT ---
+@app.post("/api/draft/signup-player")
+def draft_signup(data: DraftSignup, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    user.draft_role = data.role
+    db.commit()
+    return {"message": "Candidato al draft!"}
+
+@app.get("/api/draft/random-players/{role}")
+def draft_random(role: str, db: Session = Depends(get_db)):
+    players = db.query(models.User).filter(models.User.draft_role == role, models.User.club_id == None).all()
+    options = [{"id": p.id, "gamertag": p.gamertag, "role": p.draft_role} for p in players]
+    random.shuffle(options)
+    return {"role": role, "options": options[:3]}
+
+@app.post("/api/draft/assign")
+def draft_assign(data: PlayerAction, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.player_id).first()
+    user.club_id = data.club_id
+    user.draft_role = None 
+    db.commit()
+    return {"message": "Assegnato"}
 
 # --- GESTIONE FRONTEND HTML ---
 @app.get("/")

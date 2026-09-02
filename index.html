@@ -345,3 +345,31 @@
     </script>
 </body>
 </html>
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/")
+def read_index():
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
+    return {"message": "index.html non trovato"}
+
+@app.get("/auth.html")
+def read_auth():
+    return FileResponse("auth.html")
+
+@app.get("/admin_vca.html")
+def read_admin():
+    return FileResponse("admin_vca.html")
+
+@app.get("/draft_vca.html")
+def read_draft():
+    return FileResponse("draft_vca.html")
+
+@app.get("/dashboard_vca.html")
+def read_dashboard():
+    return FileResponse("dashboard_vca.html")
+
+@app.get("/referto_vca.html")
+def read_referto():
+    return FileResponse("referto_vca.html")

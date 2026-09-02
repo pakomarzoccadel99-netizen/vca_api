@@ -1,42 +1,30 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA - Dashboard Personale & Club</title>
     <style>
-        body { 
-            background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%);
-            background-attachment: fixed;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            text-align: center; 
-        }
+        body { background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%); background-attachment: fixed; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
         .container { max-width: 850px; margin: 0 auto; }
-        .section { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); text-align: left; }
-        h2 { color: #00ff88; margin-top: 0; border-bottom: 1px solid #440066; padding-bottom: 10px; text-transform: uppercase; font-size: 18px; }
+        .section { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; text-align: left; }
+        h2 { color: #00ff88; margin-top: 0; border-bottom: 1px solid #440066; padding-bottom: 10px; }
         input, select, button { width: 100%; box-sizing: border-box; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; }
         button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
         button:hover { background: #00cc6a; }
-        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 15px; font-weight: bold; }
-        .player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(37, 0, 70, 0.75); padding: 10px 14px; margin: 6px 0; border-radius: 6px; border: 1px solid #440066; font-size: 14px; }
+        .player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(37, 0, 70, 0.75); padding: 10px 14px; margin: 6px 0; border-radius: 6px; border: 1px solid #440066; }
         .stat-badge { background: #1a0033; padding: 5px 10px; border-radius: 6px; border: 1px solid #d900ff; font-size: 12px; display: inline-block; margin: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← Torna alla Home</a>
-        <h1>👤 Dashboard Gestione VCA</h1>
-
-        <!-- AREA PERSONALE & STATISTICHE -->
+        <a href="/" style="color:#00ff88; font-weight:bold; display:block; text-align:left; margin-bottom:15px; text-decoration:none;">← Torna alla Home</a>
+        <h1 style="color:white;">👤 Dashboard Gestione VCA</h1>
+        
         <div class="section">
             <h2>Area Personale & Statistiche</h2>
             <div id="personal-profile-content">Caricamento profilo...</div>
         </div>
-
-        <!-- GESTIONE CLUB & BACHECA ROSA (VISIBILE AI CAPITANI) -->
+        
         <div class="section" id="captain-club-section" style="display: none;">
             <h2>🛡️ Il Tuo Club & Bacheca Rosa</h2>
             <div id="club-content"></div>
@@ -44,42 +32,28 @@
     </div>
 
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        
-        if (!user) {
-            alert("Devi effettuare l'accesso.");
-            window.location.href = "auth.html";
-        }
+        if (!user) window.location.href = "auth.html";
 
         caricaAreaPersonale();
-
         if (user.role === "captain" || user.role === "admin") {
             document.getElementById("captain-club-section").style.display = "block";
             caricaProfiloClub();
         }
 
         async function caricaAreaPersonale() {
-            const res = await fetch(`${BACKEND_URL}/api/user/profile/${user.user_id}`);
+            const res = await fetch(`/api/user/profile/${user.user_id}`);
+            if(!res.ok) return;
             const data = await res.json();
-            const container = document.getElementById("personal-profile-content");
-
-            let emailInfo = (user.role === "admin") ? `<p><b>Email:</b> ${data.email}</p>` : "";
-
-            container.innerHTML = `
-                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;">
-                    <div>
-                        <p><b>Gamertag / EA ID:</b> ${data.gamertag}</p>
-                        ${emailInfo}
-                        <p><b>Ruolo:</b> ${data.role.toUpperCase()}</p>
-                        <p><b>Club di appartenenza:</b> ${data.club_name}</p>
-                    </div>
-                    <div style="background: rgba(37, 0, 70, 0.7); padding: 15px; border-radius: 8px; border: 1px solid #00ff88; text-align: center;">
-                        <h4 style="margin: 0 0 8px 0; color: #00ff88; font-size: 14px;">Statistiche Personali (Campionato)</h4>
-                        <span class="stat-badge">⚽ Gol: ${data.stats.goals}</span>
-                        <span class="stat-badge">🎯 Assist: ${data.stats.assists}</span>
-                        <span class="stat-badge">🎮 Presenze: ${data.stats.matches_played}</span>
-                    </div>
+            document.getElementById("personal-profile-content").innerHTML = `
+                <p><b>Gamertag:</b> ${data.gamertag}</p>
+                <p><b>Email:</b> ${data.email}</p>
+                <p><b>Ruolo:</b> ${data.role.toUpperCase()}</p>
+                <p><b>Club:</b> ${data.club_name}</p>
+                <div style="margin-top:10px;">
+                    <span class="stat-badge">⚽ Gol: ${data.stats.goals}</span>
+                    <span class="stat-badge">🎯 Assist: ${data.stats.assists}</span>
+                    <span class="stat-badge">🎮 Presenze: ${data.stats.matches_played}</span>
                 </div>
             `;
         }
@@ -88,8 +62,8 @@
             const container = document.getElementById("club-content");
             if (!user.club_id) {
                 container.innerHTML = `
-                    <p style="font-size: 14px; color: #aaa;">Non hai ancora creato una squadra. Registra il tuo club:</p>
-                    <input type="text" id="new-club-name" placeholder="Nome della Squadra">
+                    <p>Non hai ancora creato una squadra. Registra il tuo club:</p>
+                    <input type="text" id="new-club-name" placeholder="Nome Squadra">
                     <select id="new-club-formation">
                         <option value="3-1-4-2">3-1-4-2</option>
                         <option value="3-5-2">3-5-2</option>
@@ -98,33 +72,23 @@
                     <button onclick="creaClub()">Crea Club</button>
                 `;
             } else {
-                const resClub = await fetch(`${BACKEND_URL}/api/club/details/${user.club_id}`);
+                const resClub = await fetch(`/api/club/details/${user.club_id}`);
                 const clubData = await resClub.json();
-                
-                const resUsers = await fetch(`${BACKEND_URL}/api/users/list`);
+                const resUsers = await fetch(`/api/users/list`);
                 const allUsers = await resUsers.json();
 
-                let rosterHtml = clubData.players.length === 0 ? "<p style='color:#aaa;'>Nessun giocatore in rosa.</p>" : "";
-                clubData.players.forEach(p => {
-                    rosterHtml += `
-                        <div class="player-row">
-                            <div>
-                                <b>${p.gamertag}</b> [${p.role}]<br>
-                                <span style="font-size:12px; color:#00ff88;">Gol: ${p.goals} | Assist: ${p.assists} | Presenze: ${p.matches_played}</span>
-                            </div>
-                            <button onclick="rimuoviPlayer(${p.user_id})" style="width: auto; background: #ff0055; color: white; padding: 6px 12px; font-size: 12px;">Rimuovi</button>
-                        </div>
-                    `;
-                });
+                let rosterHtml = clubData.players.map(p => `
+                    <div class="player-row">
+                        <div><b>${p.gamertag}</b> <span style="font-size:12px; color:#00ff88;">(Gol: ${p.goals})</span></div>
+                        <button onclick="rimuoviPlayer(${p.user_id})" style="width:auto; background:#ff0055; color:white; padding:4px 8px;">Rimuovi</button>
+                    </div>
+                `).join("");
 
-                let userOptions = allUsers.map(u => `<option value="${u.id}">${u.gamertag} (${u.role})</option>`).join("");
+                let userOptions = allUsers.map(u => `<option value="${u.id}">${u.gamertag}</option>`).join("");
 
                 container.innerHTML = `
-                    <h3 style="color: #ff00ea; margin-top:0;">${clubData.name} <span style="font-size:12px; color:#aaa;">(Modulo: ${clubData.formation})</span></h3>
-                    <p style="font-weight: bold; margin-bottom: 5px;">Bacheca Rosa & Statistiche Giocatori:</p>
-                    <div style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">${rosterHtml}</div>
-                    <hr style="border-color: #440066; margin: 15px 0;">
-                    <p style="font-weight: bold; margin-bottom: 5px;">Aggiungi Utente Registrato alla Rosa:</p>
+                    <h3 style="color:#ff00ea; margin-top:0;">${clubData.name} <span style="font-size:14px; color:#ccc;">(${clubData.formation})</span></h3>
+                    <div style="margin-bottom:15px; max-height:200px; overflow-y:auto;">${rosterHtml || "<p>Nessun giocatore in rosa.</p>"}</div>
                     <select id="selected-user-id">${userOptions}</select>
                     <button onclick="aggiungiPlayer()">Aggiungi alla Rosa</button>
                 `;
@@ -134,80 +98,38 @@
         async function creaClub() {
             const name = document.getElementById("new-club-name").value;
             const formation = document.getElementById("new-club-formation").value;
-            if(!name) return alert("Inserisci il nome del club");
-
-            const res = await fetch(`${BACKEND_URL}/api/club/create`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
+            const res = await fetch(`/api/club/create`, {
+                method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ name, formation, owner_id: user.user_id })
             });
             const data = await res.json();
             if(!res.ok) return alert(data.detail);
-
-            alert(data.message);
+            
             user.club_id = data.club_id;
+            user.role = "captain";
             localStorage.setItem("vca_user", JSON.stringify(user));
+            alert("Club creato con successo!");
             caricaProfiloClub();
         }
 
         async function aggiungiPlayer() {
             const userId = document.getElementById("selected-user-id").value;
-            const res = await fetch(`${BACKEND_URL}/api/club/add-player`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
+            await fetch(`/api/club/add-player`, {
+                method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ club_id: user.club_id, user_id: parseInt(userId) })
             });
-            const data = await res.json();
-            if(!res.ok) return alert(data.detail);
-            alert(data.message);
+            alert("Giocatore aggiunto!");
             caricaProfiloClub();
         }
 
         async function rimuoviPlayer(userId) {
-            const res = await fetch(`${BACKEND_URL}/api/club/remove-player`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.jsdelivr ? null : JSON.stringify({ club_id: user.club_id, user_id: userId }) // Standard fetch body sotto
-            });
-            // Correzione body pulito
-            const resClean = await fetch(`${BACKEND_URL}/api/club/remove-player`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
+            await fetch(`/api/club/remove-player`, {
+                method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ club_id: user.club_id, user_id: userId })
             });
-            const data = await resClean.json();
-            if(!resClean.ok) return alert(data.detail);
-            alert(data.message);
+            alert("Giocatore rimosso.");
             caricaProfiloClub();
         }
     </script>
 </body>
 </html>
-from fastapi.responses import FileResponse
-import os
-
-@app.get("/")
-def read_index():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "index.html non trovato"}
-
-@app.get("/auth.html")
-def read_auth():
-    return FileResponse("auth.html")
-
-@app.get("/admin_vca.html")
-def read_admin():
-    return FileResponse("admin_vca.html")
-
-@app.get("/draft_vca.html")
-def read_draft():
-    return FileResponse("draft_vca.html")
-
-@app.get("/dashboard_vca.html")
-def read_dashboard():
-    return FileResponse("dashboard_vca.html")
-
-@app.get("/referto_vca.html")
-def read_referto():
-    return FileResponse("referto_vca.html")

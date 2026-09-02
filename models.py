@@ -27,24 +27,29 @@ class Tournament(Base):
     name = Column(String)
     format_type = Column(String)
     rules = Column(String)
-    max_teams = Column(Integer, default=16) # Nuovo: Limite squadre
-    matchdays = Column(Integer, default=1)  # Nuovo: 1 = Andata, 2 = Andata e Ritorno
+    max_teams = Column(Integer, default=16)
+    matchdays = Column(Integer, default=1)
+    # NUOVI CAMPI SVIZZERA E STATO
+    swiss_rounds = Column(Integer, default=0) # 3, 4 o 5
+    playoff_teams = Column(Integer, default=0) # 8, 16, 32
+    status = Column(String, default="open") # open, closed, active, finished
 
 class TournamentRegistration(Base):
     __tablename__ = "tournament_registrations"
     id = Column(Integer, primary_key=True, index=True)
     tournament_id = Column(Integer)
     club_id = Column(Integer)
+    is_waitlisted = Column(Boolean, default=False) # True se è in lista d'attesa
 
-# Nuova tabella per il calendario automatico
 class Match(Base):
     __tablename__ = "matches"
     id = Column(Integer, primary_key=True, index=True)
     tournament_id = Column(Integer)
     home_team_id = Column(Integer)
     away_team_id = Column(Integer)
-    matchday = Column(Integer) # Giornata (1, 2, 3...)
-    play_date = Column(String) # Data calcolata in automatico (es. 2026-09-08)
+    matchday = Column(Integer)
+    play_date = Column(String)
     home_score = Column(Integer, default=0)
     away_score = Column(Integer, default=0)
     is_played = Column(Boolean, default=False)
+    phase = Column(String, default="regular") # "swiss", "playoff_16", "quarti", ecc.

@@ -5,176 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA - Pannello Regia Admin</title>
     <style>
-        body { 
-            background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%);
-            background-attachment: fixed;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        .section { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #ff00ea; border-radius: 10px; padding: 20px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
-        h2 { color: #ff00ea; margin-top: 0; border-bottom: 1px solid #440066; padding-bottom: 10px; }
-        input, select, button { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; box-sizing: border-box; outline: none; }
-        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
+        body { background: #0b0118; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 900px; margin: 0 auto; text-align: left; }
+        .admin-section { background: rgba(26, 0, 51, 0.9); border: 1px solid #ff00ea; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 0, 234, 0.2); }
+        h3 { color: #ff00ea; margin-top: 0; border-bottom: 1px solid #550088; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #440066; padding: 10px; text-align: left; }
+        th { background: #1a0033; color: #00ff88; }
+        input, select, button { padding: 8px; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; margin: 5px 2px; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
         button:hover { background: #00cc6a; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        th, td { border: 1px solid #440066; padding: 8px; text-align: left; }
-        th { background: #250046; color: #00ff88; }
-        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 15px; font-weight: bold; }
+        .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← Torna alla Home</a>
-        <h1>⚙️ Regia Amministrazione VCA</h1>
+        <a href="/" style="color: #00ff88; text-decoration: none; font-weight: bold;">← Torna alla Home</a>
+        <h1 style="color: white; margin-bottom: 30px;">⚙️ Regia Amministrazione VCA</h1>
 
-        <div class="section" id="role-section" style="display:none;">
-            <h2>👥 Gestione Utenti, Email & Ruoli</h2>
+        <div class="admin-section">
+            <h3>👥 Gestione Utenti & Svincoli</h3>
             <table>
                 <thead>
-                    <tr>
-                        <th>Gamertag / EA ID</th>
-                        <th>Email (Visibile solo Admin)</th>
-                        <th>Club</th>
-                        <th>Ruolo</th>
-                        <th>Cambia Ruolo</th>
-                    </tr>
+                    <tr><th>Gamertag</th><th>Email</th><th>Club</th><th>Ruolo</th><th>Cambia Ruolo</th><th>Svincolo</th></tr>
                 </thead>
-                <tbody id="users-table-body">
-                    <tr><td colspan="5">Caricamento utenti...</td></tr>
-                </tbody>
+                <tbody id="users-table"><tr><td colspan="6">Caricamento...</td></tr></tbody>
             </table>
         </div>
 
-        <div class="section">
-            <h2>🏆 Crea Competizione</h2>
-            <input type="text" id="t-name" placeholder="Nome Competizione (es. Serie A VCA)">
-            <select id="t-format">
-                <option value="league">Campionato (Andata e Ritorno)</option>
-                <option value="group">Gironi (Solo Andata)</option>
-                <option value="swiss">Torneo Swiss (Svizzero)</option>
-                <option value="draft">Torneo Draft</option>
-            </select>
-            <input type="text" id="t-rules" placeholder="Regolamento breve">
-            <button onclick="CreaTorneo()">Crea Competizione</button>
+        <div class="admin-section">
+            <h3>🏆 Crea Competizione</h3>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="t-name" placeholder="Nome Competizione (es. Serie A)" style="flex: 1; min-width: 200px;">
+                <select id="t-format">
+                    <option value="league">Campionato a Punti</option>
+                    <option value="cup">Coppa a Eliminazione</option>
+                </select>
+                <select id="t-matchdays">
+                    <option value="1">Solo Andata</option>
+                    <option value="2">Andata e Ritorno</option>
+                </select>
+                <input type="number" id="t-max-teams" placeholder="Max Squadre (es. 16)" style="width: 150px;">
+                <input type="text" id="t-rules" placeholder="Regolamento breve..." style="flex: 1; min-width: 200px;">
+                <button onclick="creaCompetizione()">Crea</button>
+            </div>
         </div>
 
-        <div class="section">
-            <h2>📝 Approvazione Risultati & Referti</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Match ID</th>
-                        <th>Squadra Casa</th>
-                        <th>Squadra Ospite</th>
-                        <th>Risultato</th>
-                        <th>Azione</th>
-                    </tr>
-                </thead>
-                <tbody id="pending-matches-body">
-                    <tr><td colspan="5">Nessun referto in attesa.</td></tr>
-                </tbody>
-            </table>
+        <div class="admin-section">
+            <h3>📅 Generatore Automatico Calendario</h3>
+            <p style="font-size: 13px; color: #ccc;">Scegli il torneo, la data di inizio e i giorni in cui si giocherà. Il sistema creerà il calendario incrociando le squadre e assegnando le date!</p>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <select id="cal-tournament" style="flex: 1;"></select>
+                <input type="date" id="cal-start-date" title="Data di inizio campionato">
+            </div>
+            
+            <p style="font-size: 14px; margin: 0 0 5px 0;"><b>Giorni di gioco settimanali:</b></p>
+            <div class="checkbox-group">
+                <label><input type="checkbox" class="cal-day" value="0"> Lunedì</label>
+                <label><input type="checkbox" class="cal-day" value="1"> Martedì</label>
+                <label><input type="checkbox" class="cal-day" value="2"> Mercoledì</label>
+                <label><input type="checkbox" class="cal-day" value="3"> Giovedì</label>
+                <label><input type="checkbox" class="cal-day" value="4"> Venerdì</label>
+                <label><input type="checkbox" class="cal-day" value="5"> Sabato</label>
+                <label><input type="checkbox" class="cal-day" value="6"> Domenica</label>
+            </div>
+            <button onclick="generaCalendario()" style="background: #ff00ea; color: white; width: 100%; margin-top: 10px;">Genera Calendario Ufficiale</button>
         </div>
+
     </div>
 
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        if (!user || (user.role !== "admin" && user.role !== "event_admin")) {
-            alert("Accesso negato: Area riservata allo staff.");
+        if (!user || user.role !== "admin") {
+            alert("Accesso negato. Area riservata agli Admin.");
             window.location.href = "index.html";
         }
 
-        if (user.role === "admin") {
-            document.getElementById("role-section").style.display = "block";
-            caricaUtenti();
-        }
+        async function caricaDati() {
+            // Utenti
+            const resU = await fetch("/api/admin/users");
+            const users = await resU.json();
+            let html = "";
+            users.forEach(u => {
+                html += `<tr>
+                    <td><b>${u.gamertag}</b></td>
+                    <td style="color:#aaa;">${u.email}</td>
+                    <td>${u.club_name ? u.club_name : '<span style="color:#ff0055">Svincolato</span>'}</td>
+                    <td><b>${u.role.toUpperCase()}</b></td>
+                    <td>
+                        <select id="role-${u.id}">
+                            <option value="user" ${u.role==='user'?'selected':''}>User</option>
+                            <option value="captain" ${u.role==='captain'?'selected':''}>Capitano</option>
+                            <option value="draft_captain" ${u.role==='draft_captain'?'selected':''}>Cap Draft</option>
+                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                        </select>
+                        <button onclick="cambiaRuolo(${u.id})" style="padding:4px;">Salva</button>
+                    </td>
+                    <td>
+                        ${u.club_name ? `<button onclick="svincolaGiocatore(${u.id})" style="background:#ff0055; color:white; padding:4px;">Forza Svincolo</button>` : '-'}
+                    </td>
+                </tr>`;
+            });
+            document.getElementById("users-table").innerHTML = html;
 
-        async function caricaUtenti() {
-            const res = await fetch(`${BACKEND_URL}/api/admin/users`);
-            const data = await res.json();
-            const tbody = document.getElementById("users-table-body");
-            tbody.innerHTML = "";
-
-            data.forEach(u => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><b>${u.gamertag}</b></td>
-                        <td style="color: #ff00ea;">${u.email}</td>
-                        <td>${u.club_name}</td>
-                        <td>${u.role.toUpperCase()}</td>
-                        <td>
-                            <select id="role-${u.id}" onchange="cambiaRuolo(${u.id})">
-                                <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                                <option value="event_admin" ${u.role==='event_admin'?'selected':''}>Admin Evento</option>
-                                <option value="captain" ${u.role==='captain'?'selected':''}>Capitano</option>
-                                <option value="vice_captain" ${u.role==='vice_captain'?'selected':''}>Vice Capitano</option>
-                                <option value="draft_captain" ${u.role==='draft_captain'?'selected':''}>Capitano Draft</option>
-                                <option value="user" ${u.role==='user'?'selected':''}>Utente</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
+            // Tornei per Dropdown Calendario
+            const resT = await fetch("/api/tournaments");
+            const tourneys = await resT.json();
+            let selectT = document.getElementById("cal-tournament");
+            selectT.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
+            tourneys.forEach(t => {
+                selectT.innerHTML += `<option value="${t.id}">${t.name} (Max ${t.max_teams} Sq, ${t.teams_count} Iscritte)</option>`;
             });
         }
 
-        async function cambiaRuolo(userId) {
-            const newRole = document.getElementById(`role-${userId}`).value;
-            const res = await fetch(`${BACKEND_URL}/api/admin/set-role`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ user_id: userId, new_role: newRole })
+        async function cambiaRuolo(id) {
+            const role = document.getElementById(`role-${id}`).value;
+            await fetch("/api/admin/set-role", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ user_id: id, new_role: role })
             });
-            const data = await res.json();
-            alert(data.message);
+            alert("Ruolo aggiornato!");
+            caricaDati();
         }
 
-        async function CreaTorneo() {
-            const name = document.getElementById("t-name").value;
-            const format_type = document.getElementById("t-format").value;
-            const rules = document.getElementById("t-rules").value;
-
-            if(!name) return alert("Inserisci il nome della competizione");
-
-            const res = await fetch(`${BACKEND_URL}/api/tournaments`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ name, format_type, rules })
+        async function svincolaGiocatore(id) {
+            if(!confirm("Sicuro di voler svincolare questo giocatore dal suo club?")) return;
+            const res = await fetch("/api/admin/force-remove-player", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ user_id: id })
             });
             const data = await res.json();
             alert(data.message);
-            location.reload();
+            caricaDati();
         }
+
+        async function creaCompetizione() {
+            const payload = {
+                name: document.getElementById("t-name").value,
+                format_type: document.getElementById("t-format").value,
+                matchdays: parseInt(document.getElementById("t-matchdays").value) || 1,
+                max_teams: parseInt(document.getElementById("t-max-teams").value) || 16,
+                rules: document.getElementById("t-rules").value
+            };
+            await fetch("/api/tournaments", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            alert("Competizione creata!");
+            caricaDati();
+        }
+
+        async function generaCalendario() {
+            const tid = document.getElementById("cal-tournament").value;
+            const sDate = document.getElementById("cal-start-date").value;
+            const checkboxes = document.querySelectorAll('.cal-day:checked');
+            let days = [];
+            checkboxes.forEach(cb => days.push(parseInt(cb.value)));
+
+            if(!tid) return alert("Seleziona un torneo!");
+            if(!sDate) return alert("Inserisci la data di inizio!");
+            if(days.length === 0) return alert("Seleziona almeno un giorno della settimana in cui si giocherà!");
+
+            if(!confirm("Generare il calendario? L'operazione sovrascriverà eventuali calendari già esistenti per questo torneo.")) return;
+
+            const res = await fetch("/api/admin/generate-calendar", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ tournament_id: parseInt(tid), start_date: sDate, play_days: days })
+            });
+            const data = await res.json();
+            
+            if(res.ok) alert("✅ " + data.message);
+            else alert("⚠️ " + data.detail);
+        }
+
+        caricaDati();
     </script>
 </body>
-</html>from fastapi.responses import FileResponse
-import os
-
-@app.get("/")
-def read_index():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "index.html non trovato"}
-
-@app.get("/auth.html")
-def read_auth():
-    return FileResponse("auth.html")
-
-@app.get("/admin_vca.html")
-def read_admin():
-    return FileResponse("admin_vca.html")
-
-@app.get("/draft_vca.html")
-def read_draft():
-    return FileResponse("draft_vca.html")
-
-@app.get("/dashboard_vca.html")
-def read_dashboard():
-    return FileResponse("dashboard_vca.html")
-
-@app.get("/referto_vca.html")
-def read_referto():
-    return FileResponse("referto_vca.html")
+</html>

@@ -33,7 +33,7 @@
 
         <div class="section" id="captain-tournaments-section" style="display: none;">
             <h2>🏆 Iscrizione Competizioni</h2>
-            <p style="font-size: 13px; color: #ccc;">Scegli il torneo a cui vuoi far partecipare il tuo club.</p>
+            <p style="font-size: 13px; color: #ccc;">Esplora i tornei disponibili e iscrivi il tuo club.</p>
             <div id="tournaments-list"></div>
         </div>
     </div>
@@ -76,6 +76,7 @@
                         <option value="3-1-4-2">3-1-4-2</option>
                         <option value="3-5-2">3-5-2</option>
                         <option value="3-4-1-2">3-4-1-2</option>
+                        <option value="4-3-3">4-3-3</option>
                     </select>
                     <button onclick="creaClub()">Crea Club</button>
                 `;
@@ -109,19 +110,29 @@
             const res = await fetch('/api/tournaments');
             const tornei = await res.json();
             let html = '';
+            
             tornei.forEach(t => {
+                let statusMsg = "";
+                if (t.status === "open") {
+                    let btnText = (t.teams_count >= t.max_teams) ? "Posti esauriti: Entra in Lista d'Attesa" : "Iscrivi Ufficialmente il tuo Club";
+                    let btnColor = (t.teams_count >= t.max_teams) ? "#ff9900" : "#ff00ea";
+                    statusMsg = `<button onclick="iscriviClub(${t.id})" style="background: ${btnColor}; color: white;">${btnText}</button>`;
+                } else {
+                    statusMsg = `<p style="color:#ff0055; font-weight:bold; margin-top: 10px;">ISCRIZIONI CHIUSE DALL'ADMIN</p>`;
+                }
+                
                 html += `
                 <div class="tournament-card">
                     <h4 style="margin: 0 0 5px 0; color: #00ff88;">${t.name} <span style="font-size: 12px; color: #ccc;">(${t.format_type})</span></h4>
-                    <p style="margin: 0 0 10px 0; font-size: 13px;">Squadre Iscritte: <b>${t.teams_count} / ${t.max_teams}</b></p>
-                    <button onclick="iscriviClub(${t.id})" style="background: #ff00ea; color: white;">Iscrivi il tuo Club</button>
+                    <p style="margin: 0 0 10px 0; font-size: 13px;">Ufficiali: <b>${t.teams_count} / ${t.max_teams}</b> | In Attesa: <b style="color:#ff00ea;">${t.waitlist_count}</b></p>
+                    ${statusMsg}
                 </div>`;
             });
             document.getElementById("tournaments-list").innerHTML = html || "<p>Nessuna competizione disponibile al momento.</p>";
         }
 
         async function iscriviClub(tournamentId) {
-            if(!confirm("Vuoi iscrivere la tua squadra a questo torneo?")) return;
+            if(!confirm("Confermi di voler inviare la richiesta di iscrizione per questo torneo?")) return;
             const res = await fetch("/api/tournaments/register", {
                 method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ tournament_id: tournamentId, club_id: user.club_id })
@@ -138,6 +149,8 @@
         async function creaClub() {
             const name = document.getElementById("new-club-name").value;
             const formation = document.getElementById("new-club-formation").value;
+            if(!name) return alert("Inserisci il nome della squadra!");
+            
             const res = await fetch(`/api/club/create`, {
                 method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ name, formation, owner_id: user.user_id })
@@ -163,6 +176,7 @@
         }
 
         async function rimuoviPlayer(userId) {
+            if(!confirm("Sicuro di voler rimuovere il giocatore?")) return;
             await fetch(`/api/club/remove-player`, {
                 method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ club_id: user.club_id, user_id: userId })

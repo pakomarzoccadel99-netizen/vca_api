@@ -16,7 +16,6 @@
         select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 4px; border: 1px solid rgba(0, 212, 255, 0.3); background: rgba(10, 5, 20, 0.9); color: white; outline: none; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600; cursor: pointer;}
         select:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
         
-        /* Stili Match */
         .phase-title { color: var(--neon-purple); font-size: 24px; font-weight: 700; border-bottom: 2px solid var(--neon-purple); margin: 30px 0 15px 0; padding-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
         .matchday-title { color: var(--neon-blue); font-size: 18px; font-weight: 600; margin: 20px 0 10px 0; }
         
@@ -77,16 +76,13 @@
                 return;
             }
 
-            // Raggruppa le partite per Fase (Gironi, Ottavi, ecc.)
             const phases = {};
             matches.forEach(m => {
                 if(!phases[m.phase]) phases[m.phase] = [];
                 phases[m.phase].push(m);
             });
 
-            // Ordine corretto delle fasi per la visualizzazione
             const phaseOrder = ["regular", "sedicesimi", "ottavi", "quarti", "semifinali", "finale"];
-            
             let html = "";
             
             phaseOrder.forEach(phaseKey => {
@@ -94,7 +90,6 @@
                     const phaseName = phaseKey === "regular" ? "FASE A GIRONI / REGULAR SEASON" : phaseKey;
                     html += `<div class="phase-title">${phaseName}</div>`;
                     
-                    // Se è Fase a Gironi, raggruppiamo anche per Giornata
                     if(phaseKey === "regular") {
                         const matchdays = {};
                         phases[phaseKey].forEach(m => {
@@ -107,7 +102,6 @@
                             matchdays[day].forEach(m => { html += createMatchCard(m); });
                         });
                     } else {
-                        // Per i Playoff, stampiamo le partite direttamente sotto il titolo della fase
                         phases[phaseKey].forEach(m => { html += createMatchCard(m); });
                     }
                 }
@@ -117,23 +111,26 @@
         }
 
         function createMatchCard(m) {
-            // Decidi cosa mostrare al centro (Il punteggio se giocata, la scritta "DA GIOCARE" se non giocata)
             let scoreContent = m.is_played 
                 ? `<div class="score-played">${m.home_score} - ${m.away_score}</div>` 
                 : `<div class="score-pending">DA GIOCARE</div>`;
             
-            // Format Data
             let dateArr = m.play_date.split("-");
             let formattedDate = dateArr.length === 3 ? `${dateArr[2]}/${dateArr[1]}/${dateArr[0]}` : m.play_date;
 
+            // RECUPERO LOGHI SQUADRE
+            let fallback = "https://via.placeholder.com/30/1a0033/00ff88?text=VCA";
+            let hLogo = m.home_logo && m.home_logo !== "" ? m.home_logo : fallback;
+            let aLogo = m.away_logo && m.away_logo !== "" ? m.away_logo : fallback;
+
             return `
             <div class="match-card">
-                <div class="team home">${m.home_team}</div>
+                <div class="team home" style="display:flex; justify-content:flex-end; align-items:center; gap:10px;">${m.home_team} <img src="${hLogo}" style="width:30px; height:30px; object-fit:contain; background:white; border-radius:50%; padding:2px;" onerror="this.src='${fallback}'"></div>
                 <div class="score-display">
                     ${scoreContent}
                     <span class="match-date">${formattedDate}</span>
                 </div>
-                <div class="team away">${m.away_team}</div>
+                <div class="team away" style="display:flex; justify-content:flex-start; align-items:center; gap:10px;"><img src="${aLogo}" style="width:30px; height:30px; object-fit:contain; background:white; border-radius:50%; padding:2px;" onerror="this.src='${fallback}'"> ${m.away_team}</div>
             </div>`;
         }
 

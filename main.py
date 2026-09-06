@@ -40,7 +40,7 @@ class DraftSignup(BaseModel): role: str; user_id: int
 @app.post("/api/auth/register")
 def register(data: UserAuth, db: Session = Depends(get_db)):
     if db.query(models.User).filter((models.User.gamertag == data.gamertag) | (models.User.email == data.email)).first(): raise HTTPException(status_code=400, detail="Utente registrato.")
-    db.add(models.User(gamertag=data.gamertag, email=data.email, password=hash_password(data.password), role="admin"))
+    db.add(models.User(gamertag=data.gamertag, email=data.email, password=hash_password(data.password), role="user"))
     db.commit()
     return {"message": "Registrazione protetta completata!"}
 

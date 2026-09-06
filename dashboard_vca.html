@@ -5,62 +5,30 @@
     <title>VCA - Dashboard Personale & Club</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-green: #00ff88;
-            --neon-purple: #d900ff;
-            --dark-bg: #07030e;
-            --panel-bg: rgba(20, 10, 40, 0.75);
-            --field-green: rgba(0, 255, 136, 0.1);
-        }
-        body { 
-            background-color: var(--dark-bg); 
-            background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E");
-            color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; 
-        }
+        :root { --neon-green: #00ff88; --neon-purple: #d900ff; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); --field-green: rgba(0, 255, 136, 0.1); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; }
         .container { max-width: 900px; margin: 0 auto; }
         
-        .section { 
-            background: var(--panel-bg); backdrop-filter: blur(10px); 
-            border: 1px solid rgba(217, 0, 255, 0.3); border-left: 4px solid var(--neon-green);
-            border-radius: 4px; padding: 25px; margin-bottom: 25px; text-align: left; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); 
-        }
+        .section { background: var(--panel-bg); backdrop-filter: blur(10px); border: 1px solid rgba(217, 0, 255, 0.3); border-left: 4px solid var(--neon-green); border-radius: 4px; padding: 25px; margin-bottom: 25px; text-align: left; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
         h2 { color: white; margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px;}
         h2::before { content: '■'; color: var(--neon-purple); font-size: 16px; }
         
-        input, select, button { 
-            width: 100%; box-sizing: border-box; padding: 12px; margin: 6px 0; border-radius: 4px; 
-            border: 1px solid rgba(0, 255, 136, 0.3); background: rgba(10, 5, 20, 0.9); 
-            color: white; outline: none; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600;
-        }
+        input, select, button { width: 100%; box-sizing: border-box; padding: 12px; margin: 6px 0; border-radius: 4px; border: 1px solid rgba(0, 255, 136, 0.3); background: rgba(10, 5, 20, 0.9); color: white; outline: none; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; }
         input:focus, select:focus { border-color: var(--neon-green); box-shadow: 0 0 10px var(--field-green); }
-        
         button { background: var(--neon-green); color: black; font-weight: 700; cursor: pointer; border: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
         button:hover { background: #00cc6a; box-shadow: 0 0 15px var(--neon-green); }
         
-        .player-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: rgba(0,0,0,0.5); padding: 10px 15px; margin: 6px 0; border-radius: 4px; 
-            border-left: 3px solid var(--neon-purple); font-size: 18px; font-weight: 600;
-        }
-        .stat-badge { 
-            background: transparent; padding: 6px 12px; border-radius: 4px; 
-            border: 1px solid var(--neon-green); font-size: 16px; font-weight: 700; 
-            display: inline-block; margin: 5px; color: var(--neon-green); box-shadow: inset 0 0 10px rgba(0,255,136,0.1);
-        }
-        .tournament-card { 
-            background: rgba(0,0,0,0.4); padding: 20px; margin-bottom: 15px; 
-            border: 1px solid rgba(217, 0, 255, 0.3); border-radius: 4px; position: relative; overflow: hidden;
-        }
+        .player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); padding: 10px 15px; margin: 6px 0; border-radius: 4px; border-left: 3px solid var(--neon-purple); font-size: 18px; font-weight: 600; }
+        .stat-badge { background: transparent; padding: 6px 12px; border-radius: 4px; border: 1px solid var(--neon-green); font-size: 16px; font-weight: 700; display: inline-block; margin: 5px; color: var(--neon-green); box-shadow: inset 0 0 10px rgba(0,255,136,0.1); }
+        .tournament-card { background: rgba(0,0,0,0.4); padding: 20px; margin-bottom: 15px; border: 1px solid rgba(217, 0, 255, 0.3); border-radius: 4px; position: relative; overflow: hidden; }
         .tournament-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--neon-purple); }
         
-        /* Tabella Classifica Olografica */
         table.standings-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 16px; margin-top: 15px; }
         table.standings-table th, table.standings-table td { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         table.standings-table th { background: rgba(0,0,0,0.6); color: var(--neon-green); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
         table.standings-table td:nth-child(2) { text-align: left; font-weight: 700; letter-spacing: 1px; }
         table.standings-table tr:hover { background: var(--field-green); }
-        table.standings-table tr:nth-child(1) td { color: #ffd700; } /* Prima classificata in oro */
+        table.standings-table tr:nth-child(1) td { color: #ffd700; } 
     </style>
 </head>
 <body>
@@ -73,9 +41,27 @@
             <div id="personal-profile-content">Caricamento protocollo...</div>
         </div>
 
+        <!-- NUOVA SEZIONE: TOP PERFORMERS (STATISTICHE GLOBALI) -->
+        <div class="section" style="border-left-color: #ffd700;">
+            <h2 style="color: #ffd700;">🏅 TOP PERFORMERS GLOBALI</h2>
+            <p style="font-size: 15px; color: #aaa; margin-top: 0;">I giocatori che stanno dominando la stagione VCA.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                <!-- SCARPA D'ORO -->
+                <div style="background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--neon-green); border-radius: 4px;">
+                    <h3 style="color: var(--neon-green); margin-top:0; text-align:center; letter-spacing: 1px;">⚽ SCARPA D'ORO (GOL)</h3>
+                    <div id="top-scorers-list">Caricamento...</div>
+                </div>
+                <!-- MIGLIOR ASSISTMAN -->
+                <div style="background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--neon-purple); border-radius: 4px;">
+                    <h3 style="color: var(--neon-purple); margin-top:0; text-align:center; letter-spacing: 1px;">🎯 RE DEGLI ASSIST</h3>
+                    <div id="top-assists-list">Caricamento...</div>
+                </div>
+            </div>
+        </div>
+
         <div class="section">
             <h2>CLASSIFICHE LIVE</h2>
-            <p style="font-size: 15px; color: #aaa; margin-top: 0;">Seleziona un torneo per visualizzare i dati del database in tempo reale.</p>
             <select id="view-standings-t" onchange="mostraClassifica()">
                 <option value="">-- Connessione Database Tornei --</option>
             </select>
@@ -89,18 +75,17 @@
 
         <div class="section" id="captain-tournaments-section" style="display: none;">
             <h2>HUB ISCRIZIONI</h2>
-            <p style="font-size: 15px; color: #aaa;">Seleziona i tornei in cui schierare il tuo club.</p>
             <div id="tournaments-list"></div>
         </div>
     </div>
 
-    <!-- IL JAVASCRIPT RESTA IDENTICO PER NON INTAKKARE IL FUNZIONAMENTO -->
     <script>
         const user = JSON.parse(localStorage.getItem("vca_user"));
         if (!user) window.location.href = "auth.html";
 
         caricaAreaPersonale();
         caricaElencoClassifiche();
+        caricaStatisticheGlobali(); // <-- Avvia la nuova funzione
         
         if (user.role === "captain" || user.role === "admin") {
             document.getElementById("captain-club-section").style.display = "block";
@@ -110,7 +95,6 @@
 
         async function caricaAreaPersonale() {
             const res = await fetch(`/api/user/profile/${user.user_id}`);
-            if(!res.ok) return;
             const data = await res.json();
             document.getElementById("personal-profile-content").innerHTML = `
                 <div style="font-size: 18px; margin-bottom: 15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -124,6 +108,36 @@
                     <span class="stat-badge" style="border-color:white; color:white;">MATCH: ${data.stats.matches_played}</span>
                 </div>
             `;
+        }
+
+        // NUOVA FUNZIONE: CARICA CAPOCANNONIERI
+        async function caricaStatisticheGlobali() {
+            const res = await fetch('/api/stats/top-players');
+            const data = await res.json();
+            
+            // Render Gol
+            let htmlScorers = `<table class="standings-table"><tr><th>Pos</th><th>Operatore</th><th>Gol</th></tr>`;
+            if (data.top_scorers.length === 0) {
+                htmlScorers = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato nei referti.</p>";
+            } else {
+                data.top_scorers.forEach((p, idx) => {
+                    htmlScorers += `<tr><td>${idx+1}</td><td style="text-align:left;"><b>${p.gamertag}</b><br><span style="font-size:12px; color:#aaa;">${p.club_name}</span></td><td style="color:var(--neon-green); font-size:18px; font-weight:bold;">${p.goals}</td></tr>`;
+                });
+                htmlScorers += `</table>`;
+            }
+            document.getElementById("top-scorers-list").innerHTML = htmlScorers;
+
+            // Render Assist
+            let htmlAssists = `<table class="standings-table"><tr><th>Pos</th><th>Operatore</th><th>Ast</th></tr>`;
+            if (data.top_assists.length === 0) {
+                htmlAssists = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato nei referti.</p>";
+            } else {
+                data.top_assists.forEach((p, idx) => {
+                    htmlAssists += `<tr><td>${idx+1}</td><td style="text-align:left;"><b>${p.gamertag}</b><br><span style="font-size:12px; color:#aaa;">${p.club_name}</span></td><td style="color:var(--neon-purple); font-size:18px; font-weight:bold;">${p.assists}</td></tr>`;
+                });
+                htmlAssists += `</table>`;
+            }
+            document.getElementById("top-assists-list").innerHTML = htmlAssists;
         }
 
         async function caricaElencoClassifiche() {
@@ -144,18 +158,10 @@
             
             let html = `<div style="overflow-x:auto;"><table class="standings-table">
                 <tr><th>Pos</th><th>Squadra</th><th>Pt</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th></tr>`;
-            
-            if(data.length === 0) {
-                html += `<tr><td colspan="10" style="text-align:center; padding: 20px; color:#aaa;">Nessun dato registrato.</td></tr>`;
-            } else {
+            if(data.length === 0) { html += `<tr><td colspan="10" style="color:#aaa;">Nessun dato registrato.</td></tr>`; } 
+            else {
                 data.forEach((r, idx) => {
-                    html += `<tr>
-                        <td><b>${idx+1}</b></td>
-                        <td><b>${r.name}</b></td>
-                        <td style="color:var(--neon-green); font-size:20px;">${r.points}</td>
-                        <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td>
-                        <td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td>
-                    </tr>`;
+                    html += `<tr><td><b>${idx+1}</b></td><td><b>${r.name}</b></td><td style="color:var(--neon-green); font-size:20px;">${r.points}</td><td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td></tr>`;
                 });
             }
             html += `</table></div>`;
@@ -183,23 +189,11 @@
                 const allUsers = await resUsers.json();
 
                 let rosterHtml = clubData.players.map(p => `
-                    <div class="player-row">
-                        <div><span style="color:#aaa; font-size:12px; margin-right:8px;">ID:</span><b>${p.gamertag}</b></div>
-                        <button onclick="rimuoviPlayer(${p.user_id})" style="width:auto; background:transparent; border:1px solid #ff0055; color:#ff0055; padding:6px 12px; font-size:12px;">ESPULDI</button>
-                    </div>
+                    <div class="player-row"><div><span style="color:#aaa; font-size:12px; margin-right:8px;">ID:</span><b>${p.gamertag}</b></div><button onclick="rimuoviPlayer(${p.user_id})" style="width:auto; background:transparent; border:1px solid #ff0055; color:#ff0055; padding:6px 12px; font-size:12px;">ESPULDI</button></div>
                 `).join("");
 
                 let userOptions = allUsers.map(u => `<option value="${u.id}">${u.gamertag}</option>`).join("");
-                
-                container.innerHTML = `
-                    <h3 style="color:var(--neon-purple); margin-top:0; font-size:28px;">${clubData.name} <span style="font-size:14px; color:#aaa; font-weight:400; border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px;">${clubData.formation}</span></h3>
-                    <div style="margin-bottom:15px; max-height:250px; overflow-y:auto; padding-right:10px;">${rosterHtml || "<p style='color:#aaa;'>Nessun operatore in rosa.</p>"}</div>
-                    <div style="display:flex; gap:10px; margin-top:20px;">
-                        <select id="selected-user-id" style="flex:2;">${userOptions}</select>
-                        <button onclick="aggiungiPlayer()" style="flex:1;">INGAGGIA</button>
-                    </div>
-                `;
-                
+                container.innerHTML = `<h3 style="color:var(--neon-purple); margin-top:0; font-size:28px;">${clubData.name} <span style="font-size:14px; color:#aaa; font-weight:400; border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:10px;">${clubData.formation}</span></h3><div style="margin-bottom:15px; max-height:250px; overflow-y:auto; padding-right:10px;">${rosterHtml || "<p style='color:#aaa;'>Nessun operatore in rosa.</p>"}</div><div style="display:flex; gap:10px; margin-top:20px;"><select id="selected-user-id" style="flex:2;">${userOptions}</select><button onclick="aggiungiPlayer()" style="flex:1;">INGAGGIA</button></div>`;
                 caricaTorneiDisponibili();
             }
         }
@@ -208,7 +202,6 @@
             const res = await fetch('/api/tournaments');
             const tornei = await res.json();
             let html = '';
-            
             tornei.forEach(t => {
                 let statusMsg = "";
                 if (t.status === "open") {
@@ -219,13 +212,7 @@
                 } else {
                     statusMsg = `<p style="color:#ff0055; font-weight:700; margin-top: 15px; border: 1px solid #ff0055; padding: 10px; text-align:center;">ISCRIZIONI CHIUSE DALLA REGIA</p>`;
                 }
-                
-                html += `
-                <div class="tournament-card">
-                    <h4 style="margin: 0 0 8px 0; color: white; font-size:22px;">${t.name} <span style="font-size: 14px; color: var(--neon-green); font-weight:400;">[${t.format_type}]</span></h4>
-                    <p style="margin: 0; font-size: 15px; color:#aaa;">Slot Ufficiali: <b style="color:white;">${t.teams_count} / ${t.max_teams}</b> <span style="margin:0 10px;">|</span> In Attesa: <b style="color:var(--neon-purple);">${t.waitlist_count}</b></p>
-                    ${statusMsg}
-                </div>`;
+                html += `<div class="tournament-card"><h4 style="margin: 0 0 8px 0; color: white; font-size:22px;">${t.name} <span style="font-size: 14px; color: var(--neon-green); font-weight:400;">[${t.format_type}]</span></h4><p style="margin: 0; font-size: 15px; color:#aaa;">Slot Ufficiali: <b style="color:white;">${t.teams_count} / ${t.max_teams}</b> <span style="margin:0 10px;">|</span> In Attesa: <b style="color:var(--neon-purple);">${t.waitlist_count}</b></p>${statusMsg}</div>`;
             });
             document.getElementById("tournaments-list").innerHTML = html || "<p style='color:#aaa;'>Nessun evento attivo al momento.</p>";
         }
@@ -238,7 +225,6 @@
         }
         async function creaClub() {
             const name = document.getElementById("new-club-name").value, formation = document.getElementById("new-club-formation").value;
-            if(!name) return alert("Inserisci il nome!");
             const res = await fetch(`/api/club/create`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ name, formation, owner_id: user.user_id }) });
             const data = await res.json();
             if(!res.ok) return alert(data.detail);

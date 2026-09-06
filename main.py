@@ -132,10 +132,7 @@ def get_tournaments(db: Session = Depends(get_db)):
 
 @app.post("/api/tournaments")
 def create_tournament(data: TournamentCreate, db: Session = Depends(get_db)):
-    t = models.Tournament(
-        name=data.name, format_type=data.format_type, rules=data.rules, max_teams=data.max_teams, matchdays=data.matchdays,
-        swiss_rounds=data.swiss_rounds, playoff_teams=data.playoff_teams, status="open"
-    )
+    t = models.Tournament(name=data.name, format_type=data.format_type, rules=data.rules, max_teams=data.max_teams, matchdays=data.matchdays, swiss_rounds=data.swiss_rounds, playoff_teams=data.playoff_teams, status="open")
     db.add(t)
     db.commit()
     return {"message": "Competizione creata"}
@@ -143,9 +140,9 @@ def create_tournament(data: TournamentCreate, db: Session = Depends(get_db)):
 @app.post("/api/tournaments/register")
 def register_tournament(data: TournamentRegister, db: Session = Depends(get_db)):
     t = db.query(models.Tournament).filter(models.Tournament.id == data.tournament_id).first()
-    if t.status == "closed": raise HTTPException(status_code=400, detail="Le iscrizioni per questo torneo sono chiuse.")
+    if t.status == "closed": raise HTTPException(status_code=400, detail="Iscrizioni chiuse.")
     existing = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == data.tournament_id, models.TournamentRegistration.club_id == data.club_id).first()
-    if existing: raise HTTPException(status_code=400, detail="Il tuo club è già iscritto o in lista d'attesa.")
+    if existing: raise HTTPException(status_code=400, detail="Sei già iscritto o in coda.")
     current_count = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == data.tournament_id, models.TournamentRegistration.is_waitlisted == False).count()
     is_waitlisted = current_count >= t.max_teams
     db.add(models.TournamentRegistration(tournament_id=data.tournament_id, club_id=data.club_id, is_waitlisted=is_waitlisted))
@@ -169,35 +166,28 @@ def delete_tournament(t_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Competizione eliminata."}
 
-# --- CALCOLO CLASSIFICA E FASI ---
 def calculate_standings(t_id: int, db: Session):
     regs = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == t_id, models.TournamentRegistration.is_waitlisted == False).all()
     stats = {}
     for r in regs:
         club = db.query(models.Club).filter(models.Club.id == r.club_id).first()
-        if club:
-            stats[r.club_id] = {"club_id": club.id, "name": club.name, "points": 0, "played": 0, "won": 0, "drawn": 0, "lost": 0, "gf": 0, "ga": 0, "gd": 0}
-            
+        if club: stats[r.club_id] = {"club_id": club.id, "name": club.name, "points": 0, "played": 0, "won": 0, "drawn": 0, "lost": 0, "gf": 0, "ga": 0, "gd": 0}
     matches = db.query(models.Match).filter(models.Match.tournament_id == t_id, models.Match.is_played == True, models.Match.phase == "regular").all()
     for m in matches:
         if m.home_team_id in stats and m.away_team_id in stats:
             stats[m.home_team_id]["played"] += 1; stats[m.away_team_id]["played"] += 1
             stats[m.home_team_id]["gf"] += m.home_score; stats[m.home_team_id]["ga"] += m.away_score
             stats[m.away_team_id]["gf"] += m.away_score; stats[m.away_team_id]["ga"] += m.home_score
-            if m.home_score > m.away_score:
-                stats[m.home_team_id]["points"] += 3; stats[m.home_team_id]["won"] += 1; stats[m.away_team_id]["lost"] += 1
-            elif m.home_score < m.away_score:
-                stats[m.away_team_id]["points"] += 3; stats[m.away_team_id]["won"] += 1; stats[m.home_team_id]["lost"] += 1
+            if m.home_score > m.away_score: stats[m.home_team_id]["points"] += 3; stats[m.home_team_id]["won"] += 1; stats[m.away_team_id]["lost"] += 1
+            elif m.home_score < m.away_score: stats[m.away_team_id]["points"] += 3; stats[m.away_team_id]["won"] += 1; stats[m.home_team_id]["lost"] += 1
             else:
                 stats[m.home_team_id]["points"] += 1; stats[m.away_team_id]["points"] += 1
                 stats[m.home_team_id]["drawn"] += 1; stats[m.away_team_id]["drawn"] += 1
-                
     for cid, s in stats.items(): s["gd"] = s["gf"] - s["ga"]
     return sorted(stats.values(), key=lambda x: (x["points"], x["gd"], x["gf"]), reverse=True)
 
 @app.get("/api/tournaments/{t_id}/standings")
-def api_get_standings(t_id: int, db: Session = Depends(get_db)):
-    return calculate_standings(t_id, db)
+def api_get_standings(t_id: int, db: Session = Depends(get_db)): return calculate_standings(t_id, db)
 
 @app.post("/api/admin/generate-next-phase")
 def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
@@ -216,7 +206,6 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
         standings = calculate_standings(t.id, db)
         if len(standings) < t.playoff_teams: raise HTTPException(status_code=400, detail="Squadre insufficienti.")
         for s in standings[:t.playoff_teams]: advancing_teams.append(s["club_id"])
-        
         if t.playoff_teams == 32: next_phase_name = "sedicesimi"
         elif t.playoff_teams == 16: next_phase_name = "ottavi"
         elif t.playoff_teams == 8: next_phase_name = "quarti"
@@ -229,7 +218,6 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
             if not m.is_played: raise HTTPException(status_code=400, detail="Completa prima i referti del turno corrente.")
             if m.home_score == m.away_score: raise HTTPException(status_code=400, detail="I pareggi non sono ammessi nei playoff.")
             advancing_teams.append(m.home_team_id if m.home_score > m.away_score else m.away_team_id)
-        
         n = len(advancing_teams)
         if n == 16: next_phase_name = "ottavi"
         elif n == 8: next_phase_name = "quarti"
@@ -248,40 +236,26 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Turno {next_phase_name.upper()} generato!"}
 
-# --- GESTIONE REFERTI ---
+# --- REFERTI ---
 @app.get("/api/matches/pending/{club_id}")
 def get_pending_matches(club_id: int, db: Session = Depends(get_db)):
-    matches = db.query(models.Match).filter(
-        (models.Match.home_team_id == club_id) | (models.Match.away_team_id == club_id),
-        models.Match.is_played == False
-    ).all()
+    matches = db.query(models.Match).filter((models.Match.home_team_id == club_id) | (models.Match.away_team_id == club_id), models.Match.is_played == False).all()
     res = []
     for m in matches:
         t = db.query(models.Tournament).filter(models.Tournament.id == m.tournament_id).first()
         home = db.query(models.Club).filter(models.Club.id == m.home_team_id).first()
         away = db.query(models.Club).filter(models.Club.id == m.away_team_id).first()
-        res.append({
-            "match_id": m.id,
-            "tournament_name": t.name if t else "Torneo",
-            "phase": m.phase,
-            "home_team": home.name if home else "TBD",
-            "away_team": away.name if away else "TBD"
-        })
+        res.append({"match_id": m.id, "tournament_name": t.name if t else "Torneo", "phase": m.phase, "home_team": home.name if home else "TBD", "away_team": away.name if away else "TBD"})
     return res
 
 @app.post("/api/matches/submit")
 def submit_match(data: MatchSubmit, db: Session = Depends(get_db)):
     m = db.query(models.Match).filter(models.Match.id == data.match_id).first()
     if m.is_played: raise HTTPException(status_code=400, detail="Referto già inviato.")
-    m.home_score = data.home_score
-    m.away_score = data.away_score
-    m.is_played = True
+    m.home_score = data.home_score; m.away_score = data.away_score; m.is_played = True
     for stat in data.player_stats:
         p = db.query(models.User).filter(models.User.id == stat.player_id).first()
-        if p:
-            p.goals += stat.goals
-            p.assists += stat.assists
-            p.matches_played += 1
+        if p: p.goals += stat.goals; p.assists += stat.assists; p.matches_played += 1
     db.commit()
     return {"message": "Referto confermato!"}
 
@@ -289,18 +263,16 @@ def submit_match(data: MatchSubmit, db: Session = Depends(get_db)):
 def simulate_matches(t_id: int, db: Session = Depends(get_db)):
     matches = db.query(models.Match).filter(models.Match.tournament_id == t_id, models.Match.is_played == False).all()
     for m in matches:
-        m.home_score = random.randint(0, 4)
-        m.away_score = random.randint(0, 4)
+        m.home_score = random.randint(0, 4); m.away_score = random.randint(0, 4)
         if m.phase != "regular" and m.home_score == m.away_score: m.home_score += 1
         m.is_played = True
     db.commit()
     return {"message": "Simulazione completata!"}
 
-# --- NUOVO: API MERCATO DRAFT ---
+# --- DRAFT ---
 @app.post("/api/draft/signup")
 def draft_signup(data: DraftSignup, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == data.user_id).first()
-    if user.club_id: raise HTTPException(status_code=400, detail="Devi essere svincolato per iscriverti al draft.")
     user.draft_role = data.role
     db.commit()
     return {"message": f"Candidatura come {data.role} registrata con successo!"}
@@ -313,13 +285,36 @@ def get_draft_players(db: Session = Depends(get_db)):
 @app.post("/api/draft/assign")
 def draft_assign(data: PlayerAction, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == data.player_id).first()
-    if not user or user.club_id: raise HTTPException(status_code=400, detail="Operatore non più disponibile.")
-    user.club_id = data.club_id
-    user.draft_role = None # Lo toglie dal mercato
+    user.club_id = data.club_id; user.draft_role = None
     db.commit()
     return {"message": f"Giocatore {user.gamertag} ingaggiato!"}
 
-# --- GESTIONE FRONTEND ---
+# --- NUOVO: API TOP STATISTICHE (CAPOCANNONIERE E ASSISTMAN) ---
+@app.get("/api/stats/top-players")
+def get_top_players(db: Session = Depends(get_db)):
+    # Prende solo chi ha giocato almeno una partita o ha fatto gol/assist
+    users = db.query(models.User).filter((models.User.goals > 0) | (models.User.assists > 0) | (models.User.matches_played > 0)).all()
+    
+    # Ordina: chi ha più gol, a parità di gol vince chi ha giocato MENO partite
+    top_scorers = sorted(users, key=lambda x: (x.goals, -x.matches_played), reverse=True)[:10]
+    top_assists = sorted(users, key=lambda x: (x.assists, -x.matches_played), reverse=True)[:10]
+    
+    def format_player(p):
+        club = db.query(models.Club).filter(models.Club.id == p.club_id).first() if p.club_id else None
+        return {
+            "gamertag": p.gamertag,
+            "club_name": club.name if club else "Free Agent",
+            "goals": p.goals,
+            "assists": p.assists,
+            "matches_played": p.matches_played
+        }
+    
+    return {
+        "top_scorers": [format_player(p) for p in top_scorers if p.goals > 0],
+        "top_assists": [format_player(p) for p in top_assists if p.assists > 0]
+    }
+
+# --- FRONTEND ---
 @app.get("/")
 def read_root():
     if os.path.exists("index.html"): return FileResponse("index.html")

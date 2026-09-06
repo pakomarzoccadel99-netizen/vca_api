@@ -1,174 +1,146 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VCA - Stanza Draft & Rose</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Stanza Draft</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%);
-            background-attachment: fixed;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            text-align: center; 
-        }
-        .container { max-width: 800px; margin: 0 auto; background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #00ff88; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
-        h2 { color: #00ff88; text-transform: uppercase; margin-top: 0; }
-        select, input, button { width: 90%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; box-sizing: border-box; }
-        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
-        button:hover { background: #00cc6a; }
-        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: bold; float: left; }
-        .player-box { background: rgba(37, 0, 70, 0.75); padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #d900ff; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-        .summary-card { background: rgba(37, 0, 70, 0.75); border: 1px solid #00ff88; border-radius: 8px; padding: 15px; margin: 10px 0; text-align: left; }
+        :root { --neon-green: #00ff88; --neon-cyan: #00e5ff; --neon-purple: #d900ff; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 900px; margin: 0 auto; text-align: left; }
+        
+        .box { background: var(--panel-bg); backdrop-filter: blur(10px); border: 1px solid rgba(0, 229, 255, 0.3); border-top: 3px solid var(--neon-cyan); border-radius: 4px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); margin-bottom: 25px; }
+        h2 { color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        h2::before { content: '◈'; color: var(--neon-cyan); font-size: 18px; }
+        
+        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 4px; border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(10, 5, 20, 0.9); color: white; outline: none; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; }
+        select:focus { border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); }
+        
+        button { background: var(--neon-cyan); color: black; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: #33eeff; box-shadow: 0 0 15px var(--neon-cyan); }
+        
+        /* Griglia Carte Giocatore */
+        .draft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .draft-card { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(217, 0, 255, 0.3); border-left: 4px solid var(--neon-purple); border-radius: 4px; padding: 20px; text-align: center; transition: transform 0.2s; position: relative; overflow: hidden; }
+        .draft-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(217, 0, 255, 0.2); }
+        .draft-card h3 { color: white; margin: 0 0 10px 0; font-size: 24px; letter-spacing: 1px; }
+        .role-badge { display: inline-block; background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); padding: 4px 12px; font-weight: 700; font-size: 16px; border-radius: 4px; margin-bottom: 15px; box-shadow: inset 0 0 8px rgba(0,255,136,0.2); }
+        
+        .buy-btn { background: transparent; border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 8px; width: 100%; margin-top: 10px; }
+        .buy-btn:hover { background: var(--neon-purple); color: white; box-shadow: 0 0 15px var(--neon-purple); }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← Torna alla Home</a>
-        <h2>🎯 Stanza Draft & Gestione Rose</h2>
-        <div id="spectator-banner" style="display:none; background: #ffcc00; color: black; padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px;">
-            MODALITÀ SPETTATORE (Capitano Draft): Accesso in sola visualizzazione.
-        </div>
+        <a href="index.html" style="color:var(--neon-cyan); font-weight:700; display:block; text-align:left; margin-bottom:15px; text-decoration:none; text-transform:uppercase; letter-spacing:1px;">← HUB PRINCIPALE</a>
+        <h1 style="color:white; margin-bottom: 30px; text-transform:uppercase; letter-spacing:2px;">🌐 HUB MERCATO & DRAFT</h1>
         
-        <div style="margin-bottom: 25px;">
-            <button onclick="mostraRiepilogoRose()" style="background: #ff00ea; color: white; width: auto; padding: 10px 20px;">Visualizza Riepilogo Rose e Squadre</button>
-        </div>
-
-        <div id="admin-controls" style="border-top: 1px solid #440066; padding-top: 20px;">
-            <h3>Estrai e Assegna Giocatore</h3>
-            <select id="role-select">
-                <option value="ATT">Attaccante (ATT)</option>
-                <option value="CC">Centrocampista Centrale (CC)</option>
-                <option value="ES">Esterno Sinistro (ES)</option>
-                <option value="ED">Esterno Destro (ED)</option>
-                <option value="DIF">Difensore (DIF)</option>
+        <!-- SEZIONE FREE AGENT (Visibile solo a chi non ha un club) -->
+        <div id="free-agent-section" class="box" style="display: none;">
+            <h2>Candidatura Free Agent</h2>
+            <p style="font-size: 15px; color: #aaa; margin-top:0;">Non hai ancora un club? Dichiara la tua disponibilità e il tuo ruolo principale per farti notare dai Capitani nel database del mercato.</p>
+            <select id="draft-role">
+                <option value="ATT">Attaccante Centrale (ATT)</option>
+                <option value="AS">Ala Sinistra (AS)</option>
+                <option value="AD">Ala Destra (AD)</option>
+                <option value="COC">Trequartista (COC)</option>
+                <option value="CC">Centrocampista (CC)</option>
+                <option value="CDC">Mediano (CDC)</option>
+                <option value="TS">Terzino Sinistro (TS)</option>
+                <option value="TD">Terzino Destro (TD)</option>
+                <option value="DC">Difensore Centrale (DC)</option>
                 <option value="POR">Portiere (POR)</option>
             </select>
-            <input type="number" id="club-id-input" placeholder="ID Club Assegnatario">
-            <button onclick="pescaGiocatori()">Estrai Giocatori Disponibili</button>
+            <button onclick="iscrivitiDraft()" style="margin-top: 15px;">ENTRA NEL DATABASE DRAFT</button>
         </div>
 
-        <div id="results-area"></div>
-        <div id="summary-area" style="margin-top: 30px;"></div>
+        <!-- SEZIONE CAPITANI (Visibile solo ai Capitani/Admin) -->
+        <div id="captain-section" class="box" style="display: none; border-top-color: var(--neon-purple);">
+            <h2 style="color:var(--neon-purple);">Roster Disponibili</h2>
+            <p style="font-size: 15px; color: #aaa; margin-top:0;">Analizza i talenti svincolati ed espandi la rosa della tua franchigia.</p>
+            
+            <div id="draft-grid" class="draft-grid">
+                <!-- I giocatori compariranno qui -->
+            </div>
+        </div>
     </div>
 
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        if (!user) {
-            alert("Devi effettuare l'accesso.");
-            window.location.href = "auth.html";
+        if (!user) window.location.href = "auth.html";
+
+        async function init() {
+            // Controlla lo stato dell'utente tramite API per essere sicuri
+            const res = await fetch(`/api/user/profile/${user.user_id}`);
+            const profile = await res.json();
+            
+            // Se l'utente NON ha un club, mostriamo la sezione Free Agent
+            if (profile.club_name === "Nessuno") {
+                document.getElementById("free-agent-section").style.display = "block";
+            }
+            
+            // Se l'utente è Capitano o Admin, mostriamo il Database dei talenti
+            if (user.role === "captain" || user.role === "admin") {
+                document.getElementById("captain-section").style.display = "block";
+                caricaMercato();
+            }
         }
 
-        const isAdminOrAuthorized = (user.role === "admin" || user.can_access_draft);
-        const isDraftCaptain = (user.role === "draft_captain");
-
-        if (!isAdminOrAuthorized && !isDraftCaptain) {
-            alert("ACCESSO NEGATO: Non possiedi i permessi per accedere alla Stanza Draft.");
-            window.location.href = "index.html";
-        }
-
-        if (isDraftCaptain) {
-            document.getElementById("admin-controls").style.display = "none";
-            document.getElementById("spectator-banner").style.display = "block";
-            mostraRiepilogoRose();
-        }
-
-        async function pescaGiocatori() {
-            const role = document.getElementById("role-select").value;
-            const res = await fetch(`${BACKEND_URL}/api/draft/random-players/${role}`);
+        async function iscrivitiDraft() {
+            const role = document.getElementById("draft-role").value;
+            const res = await fetch("/api/draft/signup", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ user_id: user.user_id, role: role })
+            });
             const data = await res.json();
+            if(res.ok) {
+                alert("✅ " + data.message);
+                window.location.href = "dashboard_vca.html"; // Lo riportiamo alla base
+            } else {
+                alert("⚠️ " + data.detail);
+            }
+        }
+
+        async function caricaMercato() {
+            const res = await fetch("/api/draft/players");
+            const players = await res.json();
+            const grid = document.getElementById("draft-grid");
             
-            const area = document.getElementById("results-area");
-            area.innerHTML = `<h3>Opzioni Estratte (${data.role}):</h3>`;
-            
-            if(!data.options || data.options.length === 0) {
-                area.innerHTML += "<p>Nessun giocatore disponibile per questo ruolo.</p>";
+            if (players.length === 0) {
+                grid.innerHTML = "<p style='color:#aaa; grid-column:1/-1;'>Nessun Free Agent attualmente nel database.</p>";
                 return;
             }
-
-            data.options.forEach(p => {
-                area.innerHTML += `
-                    <div class="player-box">
-                        <span><b>${p.gamertag}</b> [${p.role}]</span>
-                        <button onclick="assegnaGiocatore(${p.id})" style="width: auto; padding: 6px 12px; background: #00ff88;">Assegna</button>
-                    </div>
-                `;
-            });
-        }
-
-        async function assegnaGiocatore(playerId) {
-            const clubId = document.getElementById("club-id-input").value;
-            if(!clubId) return alert("Inserisci l'ID del club destinatario!");
-
-            const res = await fetch(`${BACKEND_URL}/api/draft/assign`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ player_id: playerId, club_id: parseInt(clubId) })
-            });
-            const data = await res.json();
-            alert(data.message);
-            pescaGiocatori();
-        }
-
-        async function mostraRiepilogoRose() {
-            const res = await fetch(`${BACKEND_URL}/api/draft/summary`);
-            const data = await res.json();
-            const area = document.getElementById("summary-area");
             
-            area.innerHTML = "<h3>📊 Riepilogo Rose e Stato Squadre</h3>";
-            if(data.length === 0) {
-                area.innerHTML += "<p>Nessun club registrato.</p>";
-                return;
-            }
-
-            data.forEach(c => {
-                const badge = c.is_complete ? 
-                    "<span style='color: #00ff88; font-weight: bold;'>[ROSA COMPLETA ✅]</span>" : 
-                    "<span style='color: #ffcc00; font-weight: bold;'>[Incompleta ⚠️]</span>";
-
-                let playersHtml = c.players.map(p => `<li>${p.gamertag} (${p.role}) - Gol: ${p.goals} | Ast: ${p.assists}</li>`).join("");
-                if(!playersHtml) playersHtml = "<li>Nessun giocatore pescato</li>";
-
-                area.innerHTML += `
-                    <div class="summary-card">
-                        <h4 style="margin: 0 0 5px 0; color: #ff00ea;">${c.club_name} ${badge}</h4>
-                        <p style="font-size: 13px; color: #aaa; margin: 0 0 10px 0;">Modulo: ${c.formation} | Ruoli: ATT(${c.roles_breakdown.ATT}) CC(${c.roles_breakdown.CC}) ES(${c.roles_breakdown.ES}) ED(${c.roles_breakdown.ED}) DIF(${c.roles_breakdown.DIF}) POR(${c.roles_breakdown.POR})</p>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 13px;">${playersHtml}</ul>
-                    </div>
-                `;
+            let html = "";
+            players.forEach(p => {
+                html += `
+                <div class="draft-card">
+                    <h3>${p.gamertag}</h3>
+                    <div class="role-badge">${p.role}</div>
+                    <button class="buy-btn" onclick="ingaggia(${p.id}, '${p.gamertag}')">INGAGGIA</button>
+                </div>`;
             });
+            grid.innerHTML = html;
         }
+
+        async function ingaggia(playerId, playerName) {
+            if(!confirm(`Confermi l'acquisizione di ${playerName} per il tuo Club?`)) return;
+            
+            const res = await fetch("/api/draft/assign", {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ player_id: playerId, club_id: user.club_id })
+            });
+            
+            const data = await res.json();
+            if(res.ok) {
+                alert("✅ " + data.message);
+                caricaMercato(); // Aggiorna la lista
+            } else {
+                alert("⚠️ Errore di sistema: " + data.detail);
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
-from fastapi.responses import FileResponse
-import os
-
-@app.get("/")
-def read_index():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "index.html non trovato"}
-
-@app.get("/auth.html")
-def read_auth():
-    return FileResponse("auth.html")
-
-@app.get("/admin_vca.html")
-def read_admin():
-    return FileResponse("admin_vca.html")
-
-@app.get("/draft_vca.html")
-def read_draft():
-    return FileResponse("draft_vca.html")
-
-@app.get("/dashboard_vca.html")
-def read_dashboard():
-    return FileResponse("dashboard_vca.html")
-
-@app.get("/referto_vca.html")
-def read_referto():
-    return FileResponse("referto_vca.html")

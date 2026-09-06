@@ -41,18 +41,15 @@
             <div id="personal-profile-content">Caricamento protocollo...</div>
         </div>
 
-        <!-- NUOVA SEZIONE: TOP PERFORMERS (STATISTICHE GLOBALI) -->
         <div class="section" style="border-left-color: #ffd700;">
             <h2 style="color: #ffd700;">🏅 TOP PERFORMERS GLOBALI</h2>
             <p style="font-size: 15px; color: #aaa; margin-top: 0;">I giocatori che stanno dominando la stagione VCA.</p>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
-                <!-- SCARPA D'ORO -->
                 <div style="background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--neon-green); border-radius: 4px;">
                     <h3 style="color: var(--neon-green); margin-top:0; text-align:center; letter-spacing: 1px;">⚽ SCARPA D'ORO (GOL)</h3>
                     <div id="top-scorers-list">Caricamento...</div>
                 </div>
-                <!-- MIGLIOR ASSISTMAN -->
                 <div style="background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--neon-purple); border-radius: 4px;">
                     <h3 style="color: var(--neon-purple); margin-top:0; text-align:center; letter-spacing: 1px;">🎯 RE DEGLI ASSIST</h3>
                     <div id="top-assists-list">Caricamento...</div>
@@ -85,7 +82,7 @@
 
         caricaAreaPersonale();
         caricaElencoClassifiche();
-        caricaStatisticheGlobali(); // <-- Avvia la nuova funzione
+        caricaStatisticheGlobali();
         
         if (user.role === "captain" || user.role === "admin") {
             document.getElementById("captain-club-section").style.display = "block";
@@ -110,15 +107,13 @@
             `;
         }
 
-        // NUOVA FUNZIONE: CARICA CAPOCANNONIERI
         async function caricaStatisticheGlobali() {
             const res = await fetch('/api/stats/top-players');
             const data = await res.json();
             
-            // Render Gol
             let htmlScorers = `<table class="standings-table"><tr><th>Pos</th><th>Operatore</th><th>Gol</th></tr>`;
             if (data.top_scorers.length === 0) {
-                htmlScorers = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato nei referti.</p>";
+                htmlScorers = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato.</p>";
             } else {
                 data.top_scorers.forEach((p, idx) => {
                     htmlScorers += `<tr><td>${idx+1}</td><td style="text-align:left;"><b>${p.gamertag}</b><br><span style="font-size:12px; color:#aaa;">${p.club_name}</span></td><td style="color:var(--neon-green); font-size:18px; font-weight:bold;">${p.goals}</td></tr>`;
@@ -127,10 +122,9 @@
             }
             document.getElementById("top-scorers-list").innerHTML = htmlScorers;
 
-            // Render Assist
             let htmlAssists = `<table class="standings-table"><tr><th>Pos</th><th>Operatore</th><th>Ast</th></tr>`;
             if (data.top_assists.length === 0) {
-                htmlAssists = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato nei referti.</p>";
+                htmlAssists = "<p style='color:#aaa; text-align:center;'>Nessun dato registrato.</p>";
             } else {
                 data.top_assists.forEach((p, idx) => {
                     htmlAssists += `<tr><td>${idx+1}</td><td style="text-align:left;"><b>${p.gamertag}</b><br><span style="font-size:12px; color:#aaa;">${p.club_name}</span></td><td style="color:var(--neon-purple); font-size:18px; font-weight:bold;">${p.assists}</td></tr>`;
@@ -157,11 +151,21 @@
             const data = await res.json();
             
             let html = `<div style="overflow-x:auto;"><table class="standings-table">
-                <tr><th>Pos</th><th>Squadra</th><th>Pt</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th></tr>`;
+                <tr><th>Pos</th><th>Squadra (Clicca per Info)</th><th>Pt</th><th>G</th><th>V</th><th>P</th><th>S</th><th>GF</th><th>GS</th><th>DR</th></tr>`;
             if(data.length === 0) { html += `<tr><td colspan="10" style="color:#aaa;">Nessun dato registrato.</td></tr>`; } 
             else {
                 data.forEach((r, idx) => {
-                    html += `<tr><td><b>${idx+1}</b></td><td><b>${r.name}</b></td><td style="color:var(--neon-green); font-size:20px;">${r.points}</td><td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td></tr>`;
+                    // QUI LA MAGIA: Il nome della squadra diventa un link cliccabile!
+                    html += `<tr>
+                        <td><b>${idx+1}</b></td>
+                        <td>
+                            <a href="club_vca.html?id=${r.club_id}" style="color:white; text-decoration:none; border-bottom:1px dashed var(--neon-purple); transition:0.3s;" onmouseover="this.style.color='var(--neon-green)'; this.style.borderColor='var(--neon-green)';" onmouseout="this.style.color='white'; this.style.borderColor='var(--neon-purple)';">
+                                <b>${r.name}</b>
+                            </a>
+                        </td>
+                        <td style="color:var(--neon-green); font-size:20px;">${r.points}</td>
+                        <td>${r.played}</td><td>${r.won}</td><td>${r.drawn}</td><td>${r.lost}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td>
+                    </tr>`;
                 });
             }
             html += `</table></div>`;

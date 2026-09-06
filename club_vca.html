@@ -17,7 +17,6 @@
         h2 { color: var(--neon-green); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 40px; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; text-align: left;}
         h2::before { content: '🛡️'; font-size: 20px; }
 
-        /* Griglia Giocatori */
         .roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 20px; }
         .player-card { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(0, 255, 136, 0.3); border-left: 4px solid var(--neon-green); border-radius: 4px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; text-align: left; }
         .player-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0, 255, 136, 0.15); }
@@ -33,10 +32,10 @@
 </head>
 <body>
     <div class="container">
-        <!-- Usa history.back() per tornare esattamente alla pagina da cui si è arrivati -->
-        <a href="javascript:history.back()" style="color:var(--neon-purple); font-weight:700; display:block; text-align:left; margin-bottom:20px; text-decoration:none; text-transform:uppercase; letter-spacing:1px;">← TORNA INDIETRO</a>
+        <a href="javascript:history.back()" style="color:var(--neon-purple); font-weight:700; display:block; text-align:left; margin-bottom:20px; text-decoration:none; text-transform:uppercase; letter-spacing:1px;">← TORNA ALLA CLASSIFICA</a>
         
-        <div id="club-header" class="box">
+        <div id="club-header" class="box" style="display:flex; flex-direction:column; align-items:center;">
+            <img id="display-logo" src="" style="width:100px; height:100px; object-fit:contain; background:white; padding:5px; border-radius:12px; margin-bottom:15px; display:none;">
             <h1 class="club-name" id="display-name">Caricamento Dati...</h1>
             <div class="club-formation" id="display-formation">---</div>
         </div>
@@ -49,7 +48,6 @@
 
     <script>
         async function caricaClub() {
-            // Estrae l'ID del club dall'URL (es. club_vca.html?id=3)
             const urlParams = new URLSearchParams(window.location.search);
             const clubId = urlParams.get('id');
 
@@ -66,9 +64,13 @@
                 
                 const data = await res.json();
                 
-                // Popola l'intestazione
+                // Popola l'intestazione e il Logo
                 document.getElementById("display-name").innerText = data.name;
                 document.getElementById("display-formation").innerText = `Modulo: ${data.formation}`;
+                
+                let fallback = "https://via.placeholder.com/100/1a0033/00ff88?text=VCA";
+                document.getElementById("display-logo").src = data.logo_url && data.logo_url !== "" ? data.logo_url : fallback;
+                document.getElementById("display-logo").style.display = "block";
                 
                 // Popola i giocatori
                 const rosterContainer = document.getElementById("roster-container");

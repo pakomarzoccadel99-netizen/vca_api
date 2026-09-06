@@ -289,30 +289,37 @@ def draft_assign(data: PlayerAction, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Giocatore {user.gamertag} ingaggiato!"}
 
-# --- NUOVO: API TOP STATISTICHE (CAPOCANNONIERE E ASSISTMAN) ---
+# --- STATISTICHE ---
 @app.get("/api/stats/top-players")
 def get_top_players(db: Session = Depends(get_db)):
-    # Prende solo chi ha giocato almeno una partita o ha fatto gol/assist
     users = db.query(models.User).filter((models.User.goals > 0) | (models.User.assists > 0) | (models.User.matches_played > 0)).all()
-    
-    # Ordina: chi ha più gol, a parità di gol vince chi ha giocato MENO partite
     top_scorers = sorted(users, key=lambda x: (x.goals, -x.matches_played), reverse=True)[:10]
     top_assists = sorted(users, key=lambda x: (x.assists, -x.matches_played), reverse=True)[:10]
-    
     def format_player(p):
         club = db.query(models.Club).filter(models.Club.id == p.club_id).first() if p.club_id else None
-        return {
-            "gamertag": p.gamertag,
-            "club_name": club.name if club else "Free Agent",
-            "goals": p.goals,
-            "assists": p.assists,
-            "matches_played": p.matches_played
-        }
-    
-    return {
-        "top_scorers": [format_player(p) for p in top_scorers if p.goals > 0],
-        "top_assists": [format_player(p) for p in top_assists if p.assists > 0]
-    }
+        return {"gamertag": p.gamertag, "club_name": club.name if club else "Free Agent", "goals": p.goals, "assists": p.assists, "matches_played": p.matches_played}
+    return {"top_scorers": [format_player(p) for p in top_scorers if p.goals > 0], "top_assists": [format_player(p) for p in top_assists if p.assists > 0]}
+
+# --- NUOVO: API MATCH CENTER PUBBLICO ---
+@app.get("/api/tournaments/{t_id}/matches")
+def get_tournament_matches(t_id: int, db: Session = Depends(get_db)):
+    matches = db.query(models.Match).filter(models.Match.tournament_id == t_id).order_by(models.Match.phase, models.Match.matchday).all()
+    res = []
+    for m in matches:
+        home = db.query(models.Club).filter(models.Club.id == m.home_team_id).first()
+        away = db.query(models.Club).filter(models.Club.id == m.away_team_id).first()
+        res.append({
+            "id": m.id,
+            "phase": m.phase,
+            "matchday": m.matchday,
+            "play_date": m.play_date,
+            "home_team": home.name if home else "TBD",
+            "away_team": away.name if away else "TBD",
+            "home_score": m.home_score,
+            "away_score": m.away_score,
+            "is_played": m.is_played
+        })
+    return res
 
 # --- FRONTEND ---
 @app.get("/")

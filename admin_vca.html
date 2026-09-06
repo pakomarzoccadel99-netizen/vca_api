@@ -3,40 +3,52 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA - Pannello Regia Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #0b0118; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 900px; margin: 0 auto; text-align: left; }
-        .admin-section { background: rgba(26, 0, 51, 0.9); border: 1px solid #ff00ea; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 0, 234, 0.2); }
-        h3 { color: #ff00ea; margin-top: 0; border-bottom: 1px solid #550088; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        th, td { border: 1px solid #440066; padding: 10px; text-align: left; }
-        th { background: #1a0033; color: #00ff88; }
-        input, select, button { padding: 8px; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; margin: 5px 2px; }
-        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
-        button:hover { background: #00cc6a; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge.open { background: #00ff88; color: black; }
-        .badge.closed { background: #ff0055; color: white; }
-        .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; font-size: 14px; }
+        :root { --neon-green: #00ff88; --neon-purple: #d900ff; --neon-red: #ff0055; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 950px; margin: 0 auto; text-align: left; }
+        
+        .admin-section { background: var(--panel-bg); backdrop-filter: blur(10px); border: 1px solid rgba(255, 0, 85, 0.3); border-left: 4px solid var(--neon-red); border-radius: 4px; padding: 25px; margin-bottom: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
+        h3 { color: white; margin-top: 0; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        h3::before { content: '■'; color: var(--neon-red); font-size: 16px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 15px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: left; }
+        th { background: rgba(0,0,0,0.6); color: var(--neon-red); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        tr:hover { background: rgba(255, 0, 85, 0.1); }
+        
+        input, select, button { padding: 10px; border-radius: 4px; border: 1px solid rgba(255, 0, 85, 0.3); background: rgba(10, 5, 20, 0.9); color: white; margin: 5px 2px; font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 15px; outline: none; }
+        input:focus, select:focus { border-color: var(--neon-red); box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
+        
+        button { background: var(--neon-red); color: white; font-weight: 700; cursor: pointer; border: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        button:hover { background: #ff3377; box-shadow: 0 0 15px var(--neon-red); }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; border: 1px solid transparent; }
+        .badge.open { background: transparent; color: var(--neon-green); border-color: var(--neon-green); box-shadow: inset 0 0 5px rgba(0,255,136,0.2); }
+        .badge.closed { background: transparent; color: var(--neon-red); border-color: var(--neon-red); box-shadow: inset 0 0 5px rgba(255,0,85,0.2); }
+        .checkbox-group { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; font-size: 15px; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" style="color: #00ff88; text-decoration: none; font-weight: bold;">← Torna alla Home</a>
-        <h1 style="color: white; margin-bottom: 30px;">⚙️ Regia Amministrazione VCA</h1>
+        <a href="/" style="color: var(--neon-red); text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">← HUB PRINCIPALE</a>
+        <h1 style="color: white; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px;">⚙️ CONSOLE DI COMANDO ADMIN</h1>
 
         <div class="admin-section">
-            <h3>👥 Gestione Utenti & Svincoli</h3>
-            <table>
-                <thead><tr><th>Gamertag</th><th>Club</th><th>Ruolo</th><th>Cambia Ruolo</th><th>Svincolo</th></tr></thead>
-                <tbody id="users-table"><tr><td colspan="5">Caricamento...</td></tr></tbody>
-            </table>
+            <h3>Gestione Utenti & Roster</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>Gamertag</th><th>Club</th><th>Ruolo</th><th>Autorizzazione</th><th>Espulsione</th></tr></thead>
+                    <tbody id="users-table"><tr><td colspan="5">Sincronizzazione dati...</td></tr></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="admin-section">
-            <h3>🏆 Crea Competizione</h3>
+            <h3>Inizializza Competizione</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="text" id="t-name" placeholder="Nome (es. VCA Pro League)" style="flex: 1; min-width: 200px;">
+                <input type="text" id="t-name" placeholder="Nome Evento (es. VCA Pro League)" style="flex: 1; min-width: 200px;">
                 <select id="t-format" onchange="checkSwissOptions()">
                     <option value="Campionato a Punti">Campionato a Punti</option>
                     <option value="Svizzera">Sistema Svizzero</option>
@@ -44,47 +56,49 @@
                     <option value="Gironi">Fase a Gironi</option>
                 </select>
                 <select id="t-matchdays">
-                    <option value="1">Partita Secca / Solo Andata</option>
+                    <option value="1">Match Singolo / Andata</option>
                     <option value="2">Andata e Ritorno</option>
                 </select>
-                <input type="number" id="t-max-teams" placeholder="Max Squadre (es. 16)" style="width: 150px;">
+                <input type="number" id="t-max-teams" placeholder="Max Slot (es. 16)" style="width: 150px;">
                 <input type="text" id="t-rules" placeholder="Regolamento breve..." style="flex: 1; min-width: 200px;">
             </div>
-            <div id="swiss-options" style="display: none; gap: 10px; margin-top: 10px; padding: 10px; background: rgba(255,0,234,0.1); border-radius: 6px; border: 1px solid #ff00ea;">
-                <b style="color:#ff00ea; display:flex; align-items:center;">Impostazioni Svizzera/Fasi:</b>
-                <input type="number" id="t-playoff-teams" placeholder="Qualificate ai Playoff (es. 8, 16)" style="width: 220px;">
+            <div id="swiss-options" style="display: none; gap: 10px; margin-top: 10px; padding: 15px; background: rgba(255,0,85,0.1); border-radius: 4px; border: 1px solid var(--neon-red);">
+                <b style="color:white; display:flex; align-items:center; letter-spacing:1px;">PARAMETRI FASI FINALI:</b>
+                <input type="number" id="t-playoff-teams" placeholder="Slot Qualificate Playoff (es. 8, 16)" style="width: 250px;">
             </div>
-            <button onclick="creaCompetizione()" style="margin-top: 15px; width: 100%;">Crea Competizione</button>
+            <button onclick="creaCompetizione()" style="margin-top: 15px; width: 100%;">CREA EVENTO UFFICIALE</button>
         </div>
 
         <div class="admin-section">
-            <h3>🗑️ Gestione Iscrizioni & Tornei</h3>
-            <table>
-                <thead><tr><th>Nome Torneo</th><th>Stato Iscrizioni</th><th>Iscritti + Attesa</th><th>Azioni Rapide</th></tr></thead>
-                <tbody id="tournaments-table"><tr><td colspan="4">Caricamento...</td></tr></tbody>
-            </table>
+            <h3>Stato Server Tornei</h3>
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>Evento</th><th>Stato Iscrizioni</th><th>Traffico Roster</th><th>Azioni di Sistema</th></tr></thead>
+                    <tbody id="tournaments-table"><tr><td colspan="4">Sincronizzazione dati...</td></tr></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="admin-section">
-            <h3>📅 Avanzamento Turni, Playoff & Classifiche</h3>
-            <p style="font-size: 13px; color: #ccc;">Genera i Gironi iniziali, Avanza ai Playoff o Simula i risultati per testare il sistema.</p>
+            <h3>Motore Calendari & Algoritmo Playoff</h3>
+            <p style="font-size: 14px; color: #aaa;">Genera la griglia iniziale, processa i turni successivi o forza una simulazione per test ambientali.</p>
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                 <select id="cal-tournament" style="flex: 1;"></select>
                 <input type="date" id="cal-start-date" title="Data di inizio della prossima fase">
             </div>
             <div class="checkbox-group">
-                <label><input type="checkbox" class="cal-day" value="0"> Lun</label>
-                <label><input type="checkbox" class="cal-day" value="1"> Mar</label>
-                <label><input type="checkbox" class="cal-day" value="2"> Mer</label>
-                <label><input type="checkbox" class="cal-day" value="3"> Gio</label>
-                <label><input type="checkbox" class="cal-day" value="4"> Ven</label>
-                <label><input type="checkbox" class="cal-day" value="5"> Sab</label>
-                <label><input type="checkbox" class="cal-day" value="6"> Dom</label>
+                <label><input type="checkbox" class="cal-day" value="0"> LUN</label>
+                <label><input type="checkbox" class="cal-day" value="1"> MAR</label>
+                <label><input type="checkbox" class="cal-day" value="2"> MER</label>
+                <label><input type="checkbox" class="cal-day" value="3"> GIO</label>
+                <label><input type="checkbox" class="cal-day" value="4"> VEN</label>
+                <label><input type="checkbox" class="cal-day" value="5"> SAB</label>
+                <label><input type="checkbox" class="cal-day" value="6"> DOM</label>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="generaCalendario(true)" style="flex: 1; background: #00ff88; color: black;">Genera Inizio (Gironi/Regolare)</button>
-                <button onclick="generaCalendario(false)" style="flex: 1; background: #d900ff; color: white;">Avanza Turno (Es. Genera Quarti/Semifinali)</button>
-                <button onclick="simulaPartite()" style="background: #ffcc00; color: black;">Simula Risultati (Test)</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                <button onclick="generaCalendario(true)" style="flex: 1; background: var(--neon-green); color: black; min-width:200px;">Genera Fase Regolare</button>
+                <button onclick="generaCalendario(false)" style="flex: 1; background: var(--neon-purple); color: white; min-width:200px;">Avanza Fasi Playoff</button>
+                <button onclick="simulaPartite()" style="background: transparent; border: 1px solid #ffcc00; color: #ffcc00;">Simula Dati (Test)</button>
             </div>
         </div>
     </div>
@@ -104,18 +118,18 @@
             let htmlU = "";
             users.forEach(u => {
                 htmlU += `<tr>
-                    <td><b>${u.gamertag}</b></td>
-                    <td>${u.club_name ? u.club_name : '<span style="color:#ff0055">Svincolato</span>'}</td>
-                    <td><b>${u.role.toUpperCase()}</b></td>
+                    <td><b style="color:white;">${u.gamertag}</b></td>
+                    <td>${u.club_name ? u.club_name : '<span style="color:var(--neon-red)">Free Agent</span>'}</td>
+                    <td><b style="color:var(--neon-purple);">${u.role.toUpperCase()}</b></td>
                     <td>
-                        <select id="role-${u.id}">
+                        <select id="role-${u.id}" style="width:auto; padding:6px;">
                             <option value="user" ${u.role==='user'?'selected':''}>User</option>
                             <option value="captain" ${u.role==='captain'?'selected':''}>Capitano</option>
                             <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
                         </select>
-                        <button onclick="cambiaRuolo(${u.id})">Salva</button>
+                        <button onclick="cambiaRuolo(${u.id})" style="padding:6px 12px;">Applica</button>
                     </td>
-                    <td>${u.club_name ? `<button onclick="svincolaGiocatore(${u.id})" style="background:#ff0055; color:white;">Svincola</button>` : '-'}</td>
+                    <td>${u.club_name ? `<button onclick="svincolaGiocatore(${u.id})" style="background:transparent; border:1px solid var(--neon-red); color:var(--neon-red); padding:6px 12px;">Svincola</button>` : '-'}</td>
                 </tr>`;
             });
             document.getElementById("users-table").innerHTML = htmlU;
@@ -123,23 +137,23 @@
             const resT = await fetch("/api/tournaments");
             const tourneys = await resT.json();
             let tableT = "", selectT = document.getElementById("cal-tournament");
-            selectT.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
+            selectT.innerHTML = '<option value="">-- Seleziona Evento --</option>';
 
             tourneys.forEach(t => {
                 selectT.innerHTML += `<option value="${t.id}">${t.name}</option>`;
-                let badge = t.status === "open" ? '<span class="badge open">APERTE</span>' : '<span class="badge closed">CHIUSE</span>';
+                let badge = t.status === "open" ? '<span class="badge open">OPEN</span>' : '<span class="badge closed">LOCKED</span>';
                 let btnStatus = t.status === "open" ? 
-                    `<button onclick="toggleIscrizioni(${t.id})" style="background:#ff9900; margin-bottom:4px; width:100%;">Chiudi Iscrizioni</button>` : 
-                    `<button onclick="toggleIscrizioni(${t.id})" style="background:#00ff88; color:black; margin-bottom:4px; width:100%;">Riapri Iscrizioni</button>`;
+                    `<button onclick="toggleIscrizioni(${t.id})" style="background:transparent; color:#ff9900; border:1px solid #ff9900; margin-bottom:6px; width:100%;">Chiudi Iscrizioni</button>` : 
+                    `<button onclick="toggleIscrizioni(${t.id})" style="background:transparent; color:var(--neon-green); border:1px solid var(--neon-green); margin-bottom:6px; width:100%;">Riapri Iscrizioni</button>`;
                 
                 tableT += `<tr>
-                    <td><b>${t.name}</b><br><span style="font-size:11px; color:#aaa;">${t.format_type}</span></td>
+                    <td><b style="color:white; font-size:16px;">${t.name}</b><br><span style="font-size:12px; color:#aaa;">${t.format_type}</span></td>
                     <td>${badge}</td>
-                    <td>Ufficiali: <b>${t.teams_count}/${t.max_teams}</b><br>Attesa: <b style="color:#ff00ea;">${t.waitlist_count}</b></td>
-                    <td>${btnStatus}<button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; width:100%;">Elimina Torneo</button></td>
+                    <td>Ufficiali: <b style="color:white;">${t.teams_count}/${t.max_teams}</b><br>Attesa: <b style="color:var(--neon-purple);">${t.waitlist_count}</b></td>
+                    <td>${btnStatus}<button onclick="eliminaCompetizione(${t.id})" style="background:transparent; color:var(--neon-red); border:1px solid var(--neon-red); width:100%;">Elimina Record</button></td>
                 </tr>`;
             });
-            document.getElementById("tournaments-table").innerHTML = tableT || '<tr><td colspan="4">Nessun torneo</td></tr>';
+            document.getElementById("tournaments-table").innerHTML = tableT || '<tr><td colspan="4" style="color:#aaa;">Nessun evento registrato.</td></tr>';
         }
 
         async function cambiaRuolo(id) {
@@ -148,11 +162,11 @@
             caricaDati();
         }
         async function svincolaGiocatore(id) {
-            if(confirm("Svincolare?")) { await fetch("/api/admin/force-remove-player", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id }) }); caricaDati(); }
+            if(confirm("Forzare svincolo operatore?")) { await fetch("/api/admin/force-remove-player", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id }) }); caricaDati(); }
         }
         async function toggleIscrizioni(id) { await fetch(`/api/admin/toggle-tournament/${id}`, { method: "POST" }); caricaDati(); }
         async function eliminaCompetizione(id) {
-            if(confirm("Eliminare definitivamente?")) { await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" }); caricaDati(); }
+            if(confirm("Eliminare definitivamente evento e cronologia?")) { await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" }); caricaDati(); }
         }
 
         async function creaCompetizione() {
@@ -164,8 +178,9 @@
                 rules: document.getElementById("t-rules").value,
                 playoff_teams: parseInt(document.getElementById("t-playoff-teams").value) || 0
             };
+            if(!payload.name) return alert("Inserisci il nome!");
             await fetch("/api/tournaments", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload) });
-            alert("Competizione creata!"); caricaDati();
+            alert("Competizione Inizializzata!"); caricaDati();
         }
 
         async function generaCalendario(isRegular) {
@@ -173,7 +188,7 @@
             const sDate = document.getElementById("cal-start-date").value;
             let days = []; document.querySelectorAll('.cal-day:checked').forEach(cb => days.push(parseInt(cb.value)));
 
-            if(!tid || !sDate || days.length === 0) return alert("Compila tutti i campi e scegli i giorni di gioco.");
+            if(!tid || !sDate || days.length === 0) return alert("Compila tutti i parametri temporali.");
             
             const endpoint = isRegular ? "/api/admin/generate-calendar" : "/api/admin/generate-next-phase";
             const res = await fetch(endpoint, {
@@ -186,8 +201,8 @@
 
         async function simulaPartite() {
             const tid = document.getElementById("cal-tournament").value;
-            if(!tid) return alert("Seleziona il torneo nel menu a tendina prima di simulare.");
-            if(!confirm("Vuoi autocompletare tutte le partite in attesa di questo torneo con risultati casuali?")) return;
+            if(!tid) return alert("Seleziona il torneo nel menu.");
+            if(!confirm("Eseguire override dei risultati pendenti con dati simulati?")) return;
             const res = await fetch(`/api/admin/simulate-matches/${tid}`, { method: "POST" });
             const data = await res.json();
             alert("✅ " + data.message);

@@ -1,135 +1,225 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VCA - Compila Referto Campionato</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Compila Referto Ufficiale</title>
     <style>
-        body { 
-            background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%);
-            background-attachment: fixed;
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            text-align: center; 
-        }
-        .container { max-width: 650px; margin: 0 auto; background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 30px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
-        h2 { color: #00ff88; text-transform: uppercase; margin-top: 0; }
-        input, select, button { width: 90%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; box-sizing: border-box; outline: none; }
+        body { background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%); background-attachment: fixed; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: 0 auto; text-align: left; }
+        .box { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); margin-bottom: 20px; }
+        h2 { color: #00ff88; border-bottom: 1px solid #440066; padding-bottom: 10px; margin-top: 0; }
+        select, input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; box-sizing: border-box; }
         button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
         button:hover { background: #00cc6a; }
-        .back-link { color: #00ff88; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: bold; float: left; }
+        
+        .score-box { display: flex; gap: 15px; align-items: center; justify-content: center; margin: 25px 0; background: rgba(37, 0, 70, 0.6); padding: 20px; border-radius: 8px; border: 1px solid #ff00ea; }
+        .score-box input { width: 70px; text-align: center; font-size: 28px; font-weight: bold; background: #1a0033; color: #00ff88; border: 2px solid #d900ff; margin: 0; padding: 10px; }
+        .team-name { font-size: 18px; font-weight: bold; flex: 1; text-align: center; text-transform: uppercase; }
+        
+        .stat-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .stat-controls input { width: 80px; text-align: center; }
+        .stat-row { display: flex; gap: 10px; align-items: center; background: rgba(37, 0, 70, 0.75); padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #440066; font-size: 14px; }
+        .remove-btn { background: #ff0055; color: white; padding: 4px 10px; width: auto; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-link">← Torna alla Home</a>
-        <h2>Compila Referto Campionato</h2>
-        <p style="color: #aaa; font-size: 14px;">Riservato ai capitani per l'invio del risultato e delle statistiche individuali.</p>
+        <a href="dashboard_vca.html" style="color:#00ff88; font-weight:bold; display:block; text-align:left; margin-bottom:15px; text-decoration:none;">← Torna alla Dashboard</a>
+        <h1 style="color:white; margin-bottom: 30px;">📝 Referto Partita Ufficiale</h1>
         
-        <input type="number" id="tournament_id" placeholder="ID Campionato">
-        <input type="number" id="home_team_id" placeholder="ID Squadra di Casa">
-        <input type="number" id="away_team_id" placeholder="ID Squadra in Trasferta">
-        <input type="number" id="home_score" placeholder="Gol Squadra Casa">
-        <input type="number" id="away_score" placeholder="Gol Squadra Trasferta">
-        
-        <hr style="border-color: #440066; margin: 20px 0;">
-        <h3>Statistiche Singoli Giocatori (Opzionale)</h3>
-        <input type="number" id="stat-player-id" placeholder="ID Giocatore">
-        <input type="number" id="stat-goals" placeholder="Gol segnati da questo giocatore">
-        <input type="number" id="stat-assists" placeholder="Assist fatti da questo giocatore">
-        <button onclick="aggiungiStatPlayer()" style="background: #ff00ea; color: white; width: auto; padding: 8px 15px;">Aggiungi Statistica Giocatore</button>
-        <ul id="stats-list" style="text-align: left; font-size: 13px; color: #00ff88; padding-left: 20px;"></ul>
+        <div class="box">
+            <h2>1. Seleziona la Partita</h2>
+            <p style="font-size: 13px; color: #ccc;">Seleziona una delle partite in calendario non ancora giocate dal tuo club.</p>
+            <select id="match-selector" onchange="setupMatch()">
+                <option value="">-- Caricamento partite... --</option>
+            </select>
+        </div>
 
-        <button onclick="inviaReferto()" style="margin-top: 20px;">Invia Referto Ufficialmente</button>
+        <div id="report-section" style="display: none;">
+            <div class="box">
+                <h2>2. Risultato Finale</h2>
+                <div class="score-box">
+                    <div class="team-name" id="home-team-label">CASA</div>
+                    <input type="number" id="home-score" min="0" value="0">
+                    <span style="font-size: 24px; font-weight: bold; color: #ff00ea;">-</span>
+                    <input type="number" id="away-score" min="0" value="0">
+                    <div class="team-name" id="away-team-label">TRASFERTA</div>
+                </div>
+            </div>
+
+            <div class="box">
+                <h2>3. Statistiche Giocatori (Opzionale)</h2>
+                <p style="font-size: 13px; color: #ccc;">Aggiungi i Gol e gli Assist ai giocatori della tua rosa che hanno partecipato all'azione.</p>
+                
+                <div class="stat-controls">
+                    <select id="player-selector" style="flex: 2;">
+                        <option value="">-- Seleziona Giocatore --</option>
+                    </select>
+                    <input type="number" id="player-goals" min="0" placeholder="Gol" title="Gol segnati">
+                    <input type="number" id="player-assists" min="0" placeholder="Assist" title="Assist effettuati">
+                    <button onclick="addPlayerStat()" style="flex: 1; background: #ff00ea; color: white;">+ Aggiungi</button>
+                </div>
+                
+                <div id="stats-list">
+                    </div>
+            </div>
+
+            <button onclick="submitReport()" style="padding: 15px; font-size: 16px; margin-bottom: 40px;">✅ INVIA REFERTO UFFICIALE</button>
+        </div>
     </div>
 
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        if (!user) {
-            alert("Devi effettuare l'accesso.");
-            window.location.href = "auth.html";
+        if (!user || (user.role !== "captain" && user.role !== "admin")) {
+            alert("Accesso negato. Solo i capitani dei club possono compilare i referti.");
+            window.location.href = "dashboard_vca.html";
+        }
+        if (!user.club_id) {
+            alert("Non sei iscritto a nessun club.");
+            window.location.href = "dashboard_vca.html";
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const tId = urlParams.get('t_id');
-        if (tId) document.getElementById("tournament_id").value = tId;
-
+        let pendingMatches = [];
+        let clubRoster = [];
         let playerStatsArray = [];
 
-        function aggiungiStatPlayer() {
-            const pId = parseInt(document.getElementById("stat-player-id").value);
-            const goals = parseInt(document.getElementById("stat-goals").value) || 0;
-            const assists = parseInt(document.getElementById("stat-assists").value) || 0;
-
-            if(!pId) return alert("Inserisci l'ID del giocatore");
-
-            playerStatsArray.push({ player_id: pId, goals: goals, assists: assists });
+        async function init() {
+            // 1. Carica le partite in sospeso per il Club dell'utente
+            const resM = await fetch(`/api/matches/pending/${user.club_id}`);
+            pendingMatches = await resM.json();
             
-            const list = document.getElementById("stats-list");
-            list.innerHTML += `<li>Giocatore ID ${pId}: ${goals} Gol, ${assists} Assist</li>`;
-
-            document.getElementById("stat-player-id").value = "";
-            document.getElementById("stat-goals").value = "";
-            document.getElementById("stat-assists").value = "";
-        }
-
-        async function inviaReferto() {
-            const tournament_id = parseInt(document.getElementById("tournament_id").value);
-            const home_team_id = parseInt(document.getElementById("home_team_id").value);
-            const away_team_id = parseInt(document.getElementById("away_team_id").value);
-            const home_score = parseInt(document.getElementById("home_score").value);
-            const away_score = parseInt(document.getElementById("away_score").value);
-
-            if (!tournament_id || isNaN(home_score) || isNaN(away_score)) {
-                return alert("Compila correttamente i campi principali.");
+            const selector = document.getElementById("match-selector");
+            selector.innerHTML = '<option value="">-- Seleziona Partita --</option>';
+            if (pendingMatches.length === 0) {
+                selector.innerHTML = '<option value="">Nessuna partita da refertare al momento.</option>';
+                return;
             }
-
-            const res = await fetch(`${BACKEND_URL}/api/matches/submit-league`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ 
-                    tournament_id, home_team_id, away_team_id, home_score, away_score, 
-                    player_stats: playerStatsArray 
-                })
+            
+            pendingMatches.forEach(m => {
+                let phaseLabel = m.phase === "regular" ? "Fase a Gironi" : m.phase.toUpperCase();
+                selector.innerHTML += `<option value="${m.match_id}">
+                    [${m.tournament_name} - ${phaseLabel}] ${m.home_team} vs ${m.away_team}
+                </option>`;
             });
 
-            const data = await res.json();
-            if (!res.ok) return alert(data.detail || "Errore nell'invio");
-
-            alert(data.message);
-            window.location.href = "index.html";
+            // 2. Carica i giocatori del Club per il menu a tendina statistiche
+            const resC = await fetch(`/api/club/details/${user.club_id}`);
+            const clubData = await resC.json();
+            clubRoster = clubData.players;
+            
+            const playerSelector = document.getElementById("player-selector");
+            clubRoster.forEach(p => {
+                playerSelector.innerHTML += `<option value="${p.user_id}">${p.gamertag}</option>`;
+            });
         }
+
+        function setupMatch() {
+            const matchId = document.getElementById("match-selector").value;
+            const reportSection = document.getElementById("report-section");
+            
+            if (!matchId) {
+                reportSection.style.display = "none";
+                return;
+            }
+            
+            const match = pendingMatches.find(m => m.match_id == matchId);
+            document.getElementById("home-team-label").innerText = match.home_team;
+            document.getElementById("away-team-label").innerText = match.away_team;
+            
+            // Resetta i campi
+            document.getElementById("home-score").value = 0;
+            document.getElementById("away-score").value = 0;
+            playerStatsArray = [];
+            renderStatsList();
+            
+            reportSection.style.display = "block";
+        }
+
+        function addPlayerStat() {
+            const pid = document.getElementById("player-selector").value;
+            const goals = parseInt(document.getElementById("player-goals").value) || 0;
+            const assists = parseInt(document.getElementById("player-assists").value) || 0;
+            
+            if (!pid) return alert("Seleziona un giocatore.");
+            if (goals === 0 && assists === 0) return alert("Inserisci almeno un gol o un assist.");
+            
+            // Controlla se il giocatore è già nella lista per non avere doppioni
+            const exists = playerStatsArray.find(s => s.player_id == pid);
+            if (exists) {
+                exists.goals += goals;
+                exists.assists += assists;
+            } else {
+                playerStatsArray.push({ player_id: parseInt(pid), goals: goals, assists: assists });
+            }
+            
+            // Pulisci i campi
+            document.getElementById("player-selector").value = "";
+            document.getElementById("player-goals").value = "";
+            document.getElementById("player-assists").value = "";
+            
+            renderStatsList();
+        }
+
+        function removeStat(pid) {
+            playerStatsArray = playerStatsArray.filter(s => s.player_id != pid);
+            renderStatsList();
+        }
+
+        function renderStatsList() {
+            const container = document.getElementById("stats-list");
+            if (playerStatsArray.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
+            
+            let html = "";
+            playerStatsArray.forEach(stat => {
+                const player = clubRoster.find(p => p.user_id == stat.player_id);
+                const name = player ? player.gamertag : "Sconosciuto";
+                html += `
+                    <div class="stat-row">
+                        <div style="flex: 1;"><b>${name}</b></div>
+                        <div style="color: #00ff88;">⚽ Gol: <b>${stat.goals}</b></div>
+                        <div style="color: #ff00ea;">🎯 Assist: <b>${stat.assists}</b></div>
+                        <button class="remove-btn" onclick="removeStat(${stat.player_id})">X</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function submitReport() {
+            const matchId = document.getElementById("match-selector").value;
+            const homeScore = parseInt(document.getElementById("home-score").value) || 0;
+            const awayScore = parseInt(document.getElementById("away-score").value) || 0;
+            
+            if (!matchId) return alert("Seleziona una partita.");
+            if (!confirm(`Vuoi confermare il risultato di ${homeScore} a ${awayScore}? L'operazione è definitiva.`)) return;
+
+            const payload = {
+                match_id: parseInt(matchId),
+                home_score: homeScore,
+                away_score: awayScore,
+                player_stats: playerStatsArray
+            };
+
+            const res = await fetch("/api/matches/submit", {
+                method: "POST", 
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                alert("✅ " + data.message);
+                window.location.href = "dashboard_vca.html"; // Torna alla dashboard dopo il referto
+            } else {
+                alert("⚠️ Errore: " + data.detail);
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
-from fastapi.responses import FileResponse
-import os
-
-@app.get("/")
-def read_index():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"message": "index.html non trovato"}
-
-@app.get("/auth.html")
-def read_auth():
-    return FileResponse("auth.html")
-
-@app.get("/admin_vca.html")
-def read_admin():
-    return FileResponse("admin_vca.html")
-
-@app.get("/draft_vca.html")
-def read_draft():
-    return FileResponse("draft_vca.html")
-
-@app.get("/dashboard_vca.html")
-def read_dashboard():
-    return FileResponse("dashboard_vca.html")
-
-@app.get("/referto_vca.html")
-def read_referto():
-    return FileResponse("referto_vca.html")

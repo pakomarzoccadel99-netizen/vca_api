@@ -19,6 +19,7 @@ class Club(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True)
     formation = Column(String)
+    logo_url = Column(String, default="") # <-- NUOVA COLONNA PER IL LOGO
     owner_id = Column(Integer)
 
 class Tournament(Base):

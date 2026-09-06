@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA - Pannello Regia Admin</title>
     <style>
         body { background: #0b0118; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
@@ -26,7 +25,6 @@
         <a href="/" style="color: #00ff88; text-decoration: none; font-weight: bold;">← Torna alla Home</a>
         <h1 style="color: white; margin-bottom: 30px;">⚙️ Regia Amministrazione VCA</h1>
 
-        <!-- GESTIONE UTENTI E SVINCOLI -->
         <div class="admin-section">
             <h3>👥 Gestione Utenti & Svincoli</h3>
             <table>
@@ -35,7 +33,6 @@
             </table>
         </div>
 
-        <!-- CREA COMPETIZIONE -->
         <div class="admin-section">
             <h3>🏆 Crea Competizione</h3>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -45,7 +42,6 @@
                     <option value="Svizzera">Sistema Svizzero</option>
                     <option value="Coppa a Eliminazione">Coppa a Eliminazione</option>
                     <option value="Gironi">Fase a Gironi</option>
-                    <option value="Draft">Torneo Draft</option>
                 </select>
                 <select id="t-matchdays">
                     <option value="1">Partita Secca / Solo Andata</option>
@@ -54,62 +50,55 @@
                 <input type="number" id="t-max-teams" placeholder="Max Squadre (es. 16)" style="width: 150px;">
                 <input type="text" id="t-rules" placeholder="Regolamento breve..." style="flex: 1; min-width: 200px;">
             </div>
-            
-            <!-- OPZIONI AGGIUNTIVE PER SVIZZERA (Nascoste di base) -->
             <div id="swiss-options" style="display: none; gap: 10px; margin-top: 10px; padding: 10px; background: rgba(255,0,234,0.1); border-radius: 6px; border: 1px solid #ff00ea;">
-                <b style="color:#ff00ea; display:flex; align-items:center;">Impostazioni Svizzera:</b>
-                <input type="number" id="t-swiss-rounds" placeholder="N° Round Gironi (es. 3)" style="width: 180px;">
-                <input type="number" id="t-playoff-teams" placeholder="Squadre in Fase Finale (es. 8)" style="width: 220px;">
+                <b style="color:#ff00ea; display:flex; align-items:center;">Impostazioni Svizzera/Fasi:</b>
+                <input type="number" id="t-playoff-teams" placeholder="Qualificate ai Playoff (es. 8, 16)" style="width: 220px;">
             </div>
-            
             <button onclick="creaCompetizione()" style="margin-top: 15px; width: 100%;">Crea Competizione</button>
         </div>
 
-        <!-- GESTIONE COMPETIZIONI E CHIUSURA ISCRIZIONI -->
         <div class="admin-section">
             <h3>🗑️ Gestione Iscrizioni & Tornei</h3>
             <table>
-                <thead>
-                    <tr><th>Nome Torneo</th><th>Stato Iscrizioni</th><th>Iscritti + Attesa</th><th>Azioni Rapide</th></tr>
-                </thead>
+                <thead><tr><th>Nome Torneo</th><th>Stato Iscrizioni</th><th>Iscritti + Attesa</th><th>Azioni Rapide</th></tr></thead>
                 <tbody id="tournaments-table"><tr><td colspan="4">Caricamento...</td></tr></tbody>
             </table>
         </div>
 
-        <!-- GENERATORE CALENDARIO BASE -->
         <div class="admin-section">
-            <h3>📅 Generatore Automatico Calendario</h3>
-            <p style="font-size: 13px; color: #ccc;">Scegli il torneo e la data di inizio. Le squadre ufficiali verranno incrociate.</p>
+            <h3>📅 Avanzamento Turni, Playoff & Classifiche</h3>
+            <p style="font-size: 13px; color: #ccc;">Genera i Gironi iniziali, Avanza ai Playoff o Simula i risultati per testare il sistema.</p>
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                 <select id="cal-tournament" style="flex: 1;"></select>
-                <input type="date" id="cal-start-date" title="Data di inizio campionato">
+                <input type="date" id="cal-start-date" title="Data di inizio della prossima fase">
             </div>
-            
-            <p style="font-size: 14px; margin: 0 0 5px 0;"><b>Giorni di gioco settimanali:</b></p>
             <div class="checkbox-group">
-                <label><input type="checkbox" class="cal-day" value="0"> Lunedì</label>
-                <label><input type="checkbox" class="cal-day" value="1"> Martedì</label>
-                <label><input type="checkbox" class="cal-day" value="2"> Mercoledì</label>
-                <label><input type="checkbox" class="cal-day" value="3"> Giovedì</label>
-                <label><input type="checkbox" class="cal-day" value="4"> Venerdì</label>
-                <label><input type="checkbox" class="cal-day" value="5"> Sabato</label>
-                <label><input type="checkbox" class="cal-day" value="6"> Domenica</label>
+                <label><input type="checkbox" class="cal-day" value="0"> Lun</label>
+                <label><input type="checkbox" class="cal-day" value="1"> Mar</label>
+                <label><input type="checkbox" class="cal-day" value="2"> Mer</label>
+                <label><input type="checkbox" class="cal-day" value="3"> Gio</label>
+                <label><input type="checkbox" class="cal-day" value="4"> Ven</label>
+                <label><input type="checkbox" class="cal-day" value="5"> Sab</label>
+                <label><input type="checkbox" class="cal-day" value="6"> Dom</label>
             </div>
-            <button onclick="generaCalendario()" style="background: #ff00ea; color: white; width: 100%; margin-top: 10px;">Genera Calendario Ufficiale</button>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="generaCalendario(true)" style="flex: 1; background: #00ff88; color: black;">Genera Inizio (Gironi/Regolare)</button>
+                <button onclick="generaCalendario(false)" style="flex: 1; background: #d900ff; color: white;">Avanza Turno (Es. Genera Quarti/Semifinali)</button>
+                <button onclick="simulaPartite()" style="background: #ffcc00; color: black;">Simula Risultati (Test)</button>
+            </div>
         </div>
     </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem("vca_user"));
-        if (!user || user.role !== "admin") { window.location.href = "index.html"; }
+        if (!user || user.role !== "admin") window.location.href = "index.html";
 
         function checkSwissOptions() {
             const format = document.getElementById("t-format").value;
-            document.getElementById("swiss-options").style.display = (format === "Svizzera") ? "flex" : "none";
+            document.getElementById("swiss-options").style.display = (format === "Svizzera" || format === "Gironi") ? "flex" : "none";
         }
 
         async function caricaDati() {
-            // Tabella Utenti
             const resU = await fetch("/api/admin/users");
             const users = await resU.json();
             let htmlU = "";
@@ -131,16 +120,13 @@
             });
             document.getElementById("users-table").innerHTML = htmlU;
 
-            // Tabella Tornei
             const resT = await fetch("/api/tournaments");
             const tourneys = await resT.json();
-            let tableT = "";
-            let selectT = document.getElementById("cal-tournament");
+            let tableT = "", selectT = document.getElementById("cal-tournament");
             selectT.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
 
             tourneys.forEach(t => {
                 selectT.innerHTML += `<option value="${t.id}">${t.name}</option>`;
-                
                 let badge = t.status === "open" ? '<span class="badge open">APERTE</span>' : '<span class="badge closed">CHIUSE</span>';
                 let btnStatus = t.status === "open" ? 
                     `<button onclick="toggleIscrizioni(${t.id})" style="background:#ff9900; margin-bottom:4px; width:100%;">Chiudi Iscrizioni</button>` : 
@@ -150,10 +136,7 @@
                     <td><b>${t.name}</b><br><span style="font-size:11px; color:#aaa;">${t.format_type}</span></td>
                     <td>${badge}</td>
                     <td>Ufficiali: <b>${t.teams_count}/${t.max_teams}</b><br>Attesa: <b style="color:#ff00ea;">${t.waitlist_count}</b></td>
-                    <td>
-                        ${btnStatus}
-                        <button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; width:100%;">Elimina Torneo</button>
-                    </td>
+                    <td>${btnStatus}<button onclick="eliminaCompetizione(${t.id})" style="background:#ff0055; color:white; width:100%;">Elimina Torneo</button></td>
                 </tr>`;
             });
             document.getElementById("tournaments-table").innerHTML = tableT || '<tr><td colspan="4">Nessun torneo</td></tr>';
@@ -164,11 +147,12 @@
             await fetch("/api/admin/set-role", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id, new_role: role }) });
             caricaDati();
         }
-
         async function svincolaGiocatore(id) {
-            if(!confirm("Sicuro di voler svincolare il giocatore?")) return;
-            await fetch("/api/admin/force-remove-player", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id }) });
-            caricaDati();
+            if(confirm("Svincolare?")) { await fetch("/api/admin/force-remove-player", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ user_id: id }) }); caricaDati(); }
+        }
+        async function toggleIscrizioni(id) { await fetch(`/api/admin/toggle-tournament/${id}`, { method: "POST" }); caricaDati(); }
+        async function eliminaCompetizione(id) {
+            if(confirm("Eliminare definitivamente?")) { await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" }); caricaDati(); }
         }
 
         async function creaCompetizione() {
@@ -178,44 +162,35 @@
                 matchdays: parseInt(document.getElementById("t-matchdays").value) || 1,
                 max_teams: parseInt(document.getElementById("t-max-teams").value) || 16,
                 rules: document.getElementById("t-rules").value,
-                swiss_rounds: parseInt(document.getElementById("t-swiss-rounds").value) || 0,
                 playoff_teams: parseInt(document.getElementById("t-playoff-teams").value) || 0
             };
-            if(!payload.name) return alert("Inserisci il nome del torneo!");
-            
             await fetch("/api/tournaments", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload) });
-            alert("Competizione creata!");
-            caricaDati();
+            alert("Competizione creata!"); caricaDati();
         }
 
-        async function toggleIscrizioni(id) {
-            await fetch(`/api/admin/toggle-tournament/${id}`, { method: "POST" });
-            caricaDati();
-        }
-
-        async function eliminaCompetizione(id) {
-            if(!confirm("Vuoi ELIMINARE DEFINITIVAMENTE questo torneo e tutti i suoi iscritti/partite?")) return;
-            await fetch(`/api/admin/delete-tournament/${id}`, { method: "POST" });
-            caricaDati();
-        }
-
-        async function generaCalendario() {
+        async function generaCalendario(isRegular) {
             const tid = document.getElementById("cal-tournament").value;
             const sDate = document.getElementById("cal-start-date").value;
-            const checkboxes = document.querySelectorAll('.cal-day:checked');
-            let days = [];
-            checkboxes.forEach(cb => days.push(parseInt(cb.value)));
+            let days = []; document.querySelectorAll('.cal-day:checked').forEach(cb => days.push(parseInt(cb.value)));
 
             if(!tid || !sDate || days.length === 0) return alert("Compila tutti i campi e scegli i giorni di gioco.");
-            if(!confirm("Generare il calendario? Sovrascriverà quelli esistenti per questo torneo.")) return;
-
-            const res = await fetch("/api/admin/generate-calendar", {
+            
+            const endpoint = isRegular ? "/api/admin/generate-calendar" : "/api/admin/generate-next-phase";
+            const res = await fetch(endpoint, {
                 method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ tournament_id: parseInt(tid), start_date: sDate, play_days: days })
             });
             const data = await res.json();
-            if(res.ok) alert("✅ " + data.message);
-            else alert("⚠️ " + data.detail);
+            if(res.ok) alert("✅ " + data.message); else alert("⚠️ " + data.detail);
+        }
+
+        async function simulaPartite() {
+            const tid = document.getElementById("cal-tournament").value;
+            if(!tid) return alert("Seleziona il torneo nel menu a tendina prima di simulare.");
+            if(!confirm("Vuoi autocompletare tutte le partite in attesa di questo torneo con risultati casuali?")) return;
+            const res = await fetch(`/api/admin/simulate-matches/${tid}`, { method: "POST" });
+            const data = await res.json();
+            alert("✅ " + data.message);
         }
 
         caricaDati();

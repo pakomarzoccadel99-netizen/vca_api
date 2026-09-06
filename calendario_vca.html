@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCA - Match Center & Calendario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-green: #00ff88; --neon-purple: #d900ff; --neon-blue: #00d4ff; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 900px; margin: 0 auto; text-align: left; }
+        
+        .box { background: var(--panel-bg); backdrop-filter: blur(10px); border: 1px solid rgba(0, 212, 255, 0.3); border-top: 3px solid var(--neon-blue); border-radius: 4px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); margin-bottom: 25px; }
+        h2 { color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        h2::before { content: '📅'; font-size: 20px; }
+        
+        select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 4px; border: 1px solid rgba(0, 212, 255, 0.3); background: rgba(10, 5, 20, 0.9); color: white; outline: none; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600; cursor: pointer;}
+        select:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0, 212, 255, 0.2); }
+        
+        /* Stili Match */
+        .phase-title { color: var(--neon-purple); font-size: 24px; font-weight: 700; border-bottom: 2px solid var(--neon-purple); margin: 30px 0 15px 0; padding-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .matchday-title { color: var(--neon-blue); font-size: 18px; font-weight: 600; margin: 20px 0 10px 0; }
+        
+        .match-card { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); padding: 12px 15px; margin-bottom: 8px; border-radius: 4px; transition: 0.2s; }
+        .match-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
+        
+        .team { font-size: 18px; font-weight: 700; width: 35%; text-transform: uppercase; }
+        .team.home { text-align: right; }
+        .team.away { text-align: left; }
+        
+        .score-display { width: 30%; text-align: center; }
+        .score-played { font-size: 24px; font-weight: 700; color: var(--neon-green); letter-spacing: 2px; text-shadow: 0 0 5px rgba(0,255,136,0.5); }
+        .score-pending { font-size: 14px; color: #888; font-weight: 600; letter-spacing: 1px; }
+        .match-date { font-size: 12px; color: var(--neon-blue); display: block; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" style="color:var(--neon-blue); font-weight:700; display:block; text-align:left; margin-bottom:15px; text-decoration:none; text-transform:uppercase; letter-spacing:1px;">← HUB PRINCIPALE</a>
+        <h1 style="color:white; margin-bottom: 30px; text-transform:uppercase; letter-spacing:2px;">📺 MATCH CENTER VCA</h1>
+        
+        <div class="box">
+            <h2>Palinsesto Tornei</h2>
+            <p style="font-size: 15px; color: #aaa; margin-top:0;">Seleziona la competizione per visualizzare lo storico dei risultati e i prossimi incontri in programma.</p>
+            <select id="tourney-selector" onchange="caricaCalendario()">
+                <option value="">-- Connessione Database Eventi... --</option>
+            </select>
+        </div>
+
+        <div id="calendar-container" style="padding-bottom: 50px;">
+            <!-- I risultati compariranno qui -->
+        </div>
+    </div>
+
+    <script>
+        async function init() {
+            const res = await fetch('/api/tournaments');
+            const tornei = await res.json();
+            let sel = document.getElementById("tourney-selector");
+            sel.innerHTML = '<option value="">-- Seleziona Competizione --</option>';
+            tornei.forEach(t => { 
+                sel.innerHTML += `<option value="${t.id}">${t.name} [${t.format_type}]</option>`; 
+            });
+        }
+
+        async function caricaCalendario() {
+            const tid = document.getElementById("tourney-selector").value;
+            const container = document.getElementById("calendar-container");
+            if(!tid) { container.innerHTML = ""; return; }
+            
+            container.innerHTML = "<p style='color:var(--neon-blue); font-weight:bold;'>Sincronizzazione dati in corso...</p>";
+            
+            const res = await fetch(`/api/tournaments/${tid}/matches`);
+            const matches = await res.json();
+            
+            if(matches.length === 0) {
+                container.innerHTML = "<p style='color:#aaa;'>Calendario non ancora generato per questo torneo.</p>";
+                return;
+            }
+
+            // Raggruppa le partite per Fase (Gironi, Ottavi, ecc.)
+            const phases = {};
+            matches.forEach(m => {
+                if(!phases[m.phase]) phases[m.phase] = [];
+                phases[m.phase].push(m);
+            });
+
+            // Ordine corretto delle fasi per la visualizzazione
+            const phaseOrder = ["regular", "sedicesimi", "ottavi", "quarti", "semifinali", "finale"];
+            
+            let html = "";
+            
+            phaseOrder.forEach(phaseKey => {
+                if(phases[phaseKey]) {
+                    const phaseName = phaseKey === "regular" ? "FASE A GIRONI / REGULAR SEASON" : phaseKey;
+                    html += `<div class="phase-title">${phaseName}</div>`;
+                    
+                    // Se è Fase a Gironi, raggruppiamo anche per Giornata
+                    if(phaseKey === "regular") {
+                        const matchdays = {};
+                        phases[phaseKey].forEach(m => {
+                            if(!matchdays[m.matchday]) matchdays[m.matchday] = [];
+                            matchdays[m.matchday].push(m);
+                        });
+                        
+                        Object.keys(matchdays).sort((a,b) => a-b).forEach(day => {
+                            html += `<div class="matchday-title">Giornata ${day}</div>`;
+                            matchdays[day].forEach(m => { html += createMatchCard(m); });
+                        });
+                    } else {
+                        // Per i Playoff, stampiamo le partite direttamente sotto il titolo della fase
+                        phases[phaseKey].forEach(m => { html += createMatchCard(m); });
+                    }
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function createMatchCard(m) {
+            // Decidi cosa mostrare al centro (Il punteggio se giocata, la scritta "DA GIOCARE" se non giocata)
+            let scoreContent = m.is_played 
+                ? `<div class="score-played">${m.home_score} - ${m.away_score}</div>` 
+                : `<div class="score-pending">DA GIOCARE</div>`;
+            
+            // Format Data
+            let dateArr = m.play_date.split("-");
+            let formattedDate = dateArr.length === 3 ? `${dateArr[2]}/${dateArr[1]}/${dateArr[0]}` : m.play_date;
+
+            return `
+            <div class="match-card">
+                <div class="team home">${m.home_team}</div>
+                <div class="score-display">
+                    ${scoreContent}
+                    <span class="match-date">${formattedDate}</span>
+                </div>
+                <div class="team away">${m.away_team}</div>
+            </div>`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

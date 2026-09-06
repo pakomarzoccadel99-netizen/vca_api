@@ -13,7 +13,6 @@ from database import SessionLocal, engine, Base
 import models
 
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
@@ -22,7 +21,6 @@ def get_db():
     try: yield db
     finally: db.close()
 
-# --- SCHEMI DATI ---
 class UserAuth(BaseModel): gamertag: str = None; email: str = None; login_id: str = None; password: str
 class RoleUpdate(BaseModel): user_id: int; new_role: str
 class AdminRemovePlayer(BaseModel): user_id: int
@@ -32,7 +30,6 @@ class TournamentCreate(BaseModel): name: str; format_type: str; rules: str; max_
 class CalendarGenerate(BaseModel): tournament_id: int; start_date: str; play_days: List[int]
 class TournamentRegister(BaseModel): tournament_id: int; club_id: int
 
-# --- API AUTH & PROFILO ---
 @app.post("/api/auth/register")
 def register(data: UserAuth, db: Session = Depends(get_db)):
     if db.query(models.User).filter((models.User.gamertag == data.gamertag) | (models.User.email == data.email)).first():
@@ -54,7 +51,6 @@ def profile(user_id: int, db: Session = Depends(get_db)):
     club = db.query(models.Club).filter(models.Club.id == user.club_id).first() if user.club_id else None
     return {"gamertag": user.gamertag, "email": user.email, "role": user.role, "club_name": club.name if club else "Nessuno", "stats": {"goals": user.goals, "assists": user.assists, "matches_played": user.matches_played}}
 
-# --- API ADMIN E UTENTI ---
 @app.post("/api/admin/set-role")
 def set_role(data: RoleUpdate, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == data.user_id).first()
@@ -81,7 +77,6 @@ def list_users(db: Session = Depends(get_db)):
         res.append({"id": u.id, "gamertag": u.gamertag, "email": u.email, "role": u.role, "club_name": club.name if club else None})
     return res
 
-# --- API CLUB ---
 @app.post("/api/club/create")
 def create_club(data: ClubCreate, db: Session = Depends(get_db)):
     if db.query(models.Club).filter(models.Club.name == data.name).first(): raise HTTPException(status_code=400, detail="Nome club in uso.")
@@ -116,7 +111,6 @@ def remove_player(data: PlayerAction, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Rimosso"}
 
-# --- API TORNEI & LISTA ATTESA ---
 @app.get("/api/tournaments")
 def get_tournaments(db: Session = Depends(get_db)):
     tournaments = db.query(models.Tournament).all()
@@ -140,20 +134,14 @@ def create_tournament(data: TournamentCreate, db: Session = Depends(get_db)):
 @app.post("/api/tournaments/register")
 def register_tournament(data: TournamentRegister, db: Session = Depends(get_db)):
     t = db.query(models.Tournament).filter(models.Tournament.id == data.tournament_id).first()
-    if not t: raise HTTPException(status_code=404, detail="Torneo non trovato")
     if t.status == "closed": raise HTTPException(status_code=400, detail="Le iscrizioni per questo torneo sono chiuse.")
-    
     existing = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == data.tournament_id, models.TournamentRegistration.club_id == data.club_id).first()
     if existing: raise HTTPException(status_code=400, detail="Il tuo club è già iscritto o in lista d'attesa.")
-    
     current_count = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == data.tournament_id, models.TournamentRegistration.is_waitlisted == False).count()
-    
-    # Se il torneo è pieno, va in Lista d'Attesa
     is_waitlisted = current_count >= t.max_teams
     db.add(models.TournamentRegistration(tournament_id=data.tournament_id, club_id=data.club_id, is_waitlisted=is_waitlisted))
     db.commit()
-    
-    if is_waitlisted: return {"message": "Iscritti in LISTA D'ATTESA. Sarete contattati se si libera un posto."}
+    if is_waitlisted: return {"message": "Iscritti in LISTA D'ATTESA."}
     return {"message": "Club iscritto ufficialmente!"}
 
 @app.post("/api/admin/toggle-tournament/{t_id}")
@@ -166,72 +154,126 @@ def toggle_tournament(t_id: int, db: Session = Depends(get_db)):
 @app.post("/api/admin/delete-tournament/{t_id}")
 def delete_tournament(t_id: int, db: Session = Depends(get_db)):
     t = db.query(models.Tournament).filter(models.Tournament.id == t_id).first()
-    if not t: raise HTTPException(status_code=404, detail="Torneo non trovato")
     db.query(models.Match).filter(models.Match.tournament_id == t_id).delete()
     db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == t_id).delete()
     db.delete(t)
     db.commit()
     return {"message": "Competizione eliminata."}
 
-@app.post("/api/admin/generate-calendar")
-def generate_calendar(data: CalendarGenerate, db: Session = Depends(get_db)):
+# --- CALCOLO CLASSIFICA ---
+def calculate_standings(t_id: int, db: Session):
+    regs = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == t_id, models.TournamentRegistration.is_waitlisted == False).all()
+    stats = {}
+    for r in regs:
+        club = db.query(models.Club).filter(models.Club.id == r.club_id).first()
+        if club:
+            stats[r.club_id] = {"club_id": club.id, "name": club.name, "points": 0, "played": 0, "won": 0, "drawn": 0, "lost": 0, "gf": 0, "ga": 0, "gd": 0}
+            
+    matches = db.query(models.Match).filter(models.Match.tournament_id == t_id, models.Match.is_played == True, models.Match.phase == "regular").all()
+    for m in matches:
+        if m.home_team_id in stats and m.away_team_id in stats:
+            stats[m.home_team_id]["played"] += 1; stats[m.away_team_id]["played"] += 1
+            stats[m.home_team_id]["gf"] += m.home_score; stats[m.home_team_id]["ga"] += m.away_score
+            stats[m.away_team_id]["gf"] += m.away_score; stats[m.away_team_id]["ga"] += m.home_score
+            if m.home_score > m.away_score:
+                stats[m.home_team_id]["points"] += 3; stats[m.home_team_id]["won"] += 1; stats[m.away_team_id]["lost"] += 1
+            elif m.home_score < m.away_score:
+                stats[m.away_team_id]["points"] += 3; stats[m.away_team_id]["won"] += 1; stats[m.home_team_id]["lost"] += 1
+            else:
+                stats[m.home_team_id]["points"] += 1; stats[m.away_team_id]["points"] += 1
+                stats[m.home_team_id]["drawn"] += 1; stats[m.away_team_id]["drawn"] += 1
+                
+    for cid, s in stats.items(): s["gd"] = s["gf"] - s["ga"]
+    return sorted(stats.values(), key=lambda x: (x["points"], x["gd"], x["gf"]), reverse=True)
+
+@app.get("/api/tournaments/{t_id}/standings")
+def api_get_standings(t_id: int, db: Session = Depends(get_db)):
+    return calculate_standings(t_id, db)
+
+# --- GENERAZIONE FASI E PLAYOFF ---
+@app.post("/api/admin/generate-next-phase")
+def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     t = db.query(models.Tournament).filter(models.Tournament.id == data.tournament_id).first()
-    if not t: raise HTTPException(status_code=404, detail="Torneo non trovato")
+    matches = db.query(models.Match).filter(models.Match.tournament_id == t.id).all()
     
-    regs = db.query(models.TournamentRegistration).filter(models.TournamentRegistration.tournament_id == t.id, models.TournamentRegistration.is_waitlisted == False).all()
-    team_ids = [r.club_id for r in regs]
-    
-    if len(team_ids) < 2: raise HTTPException(status_code=400, detail="Servono almeno 2 squadre iscritte Ufficialmente.")
-    if len(team_ids) % 2 != 0: team_ids.append(None) # Team fantasma per il "Riposo"
+    phase_order = ["sedicesimi", "ottavi", "quarti", "semifinali", "finale"]
+    current_phase = "regular"
+    for m in matches:
+        if m.phase in phase_order:
+            if phase_order.index(m.phase) >= (phase_order.index(current_phase) if current_phase in phase_order else -1):
+                current_phase = m.phase
 
-    num_teams = len(team_ids)
-    total_rounds = num_teams - 1
-    total_matchdays = total_rounds * t.matchdays
+    advancing_teams = []
+    next_phase_name = ""
 
+    # Passaggio da Fase a Gironi (Regular) -> Playoff
+    if current_phase == "regular":
+        if t.playoff_teams not in [2, 4, 8, 16, 32]:
+            raise HTTPException(status_code=400, detail="Questo torneo non prevede una fase finale o il numero di qualificate non è valido.")
+        standings = calculate_standings(t.id, db)
+        if len(standings) < t.playoff_teams:
+            raise HTTPException(status_code=400, detail="Non ci sono abbastanza squadre per generare i playoff.")
+        
+        for s in standings[:t.playoff_teams]:
+            advancing_teams.append(s["club_id"])
+            
+        if t.playoff_teams == 32: next_phase_name = "sedicesimi"
+        elif t.playoff_teams == 16: next_phase_name = "ottavi"
+        elif t.playoff_teams == 8: next_phase_name = "quarti"
+        elif t.playoff_teams == 4: next_phase_name = "semifinali"
+        elif t.playoff_teams == 2: next_phase_name = "finale"
+        
+        pairings = []
+        n = len(advancing_teams)
+        for i in range(n // 2): pairings.append((advancing_teams[i], advancing_teams[n - 1 - i]))
+        
+    # Passaggio da un Playoff all'altro (Es. da Ottavi -> Quarti)
+    else:
+        current_phase_matches = [m for m in matches if m.phase == current_phase]
+        for m in current_phase_matches:
+            if not m.is_played: raise HTTPException(status_code=400, detail=f"Devi completare tutte le partite di {current_phase} prima di avanzare.")
+            if m.home_score == m.away_score: raise HTTPException(status_code=400, detail="Nei playoff non sono ammessi pareggi! Aggiorna i referti (es. aggiungendo i rigori).")
+            if m.home_score > m.away_score: advancing_teams.append(m.home_team_id)
+            else: advancing_teams.append(m.away_team_id)
+        
+        n = len(advancing_teams)
+        if n == 16: next_phase_name = "ottavi"
+        elif n == 8: next_phase_name = "quarti"
+        elif n == 4: next_phase_name = "semifinali"
+        elif n == 2: next_phase_name = "finale"
+        elif n == 1: raise HTTPException(status_code=400, detail="Il torneo è concluso, c'è già un vincitore!")
+        
+        pairings = []
+        for i in range(0, n, 2): pairings.append((advancing_teams[i], advancing_teams[i+1]))
+
+    # Assegna Date
     current_date = datetime.strptime(data.start_date, "%Y-%m-%d")
-    matchday_dates = {}
-    day_counter = 1
-    
-    while day_counter <= total_matchdays:
-        if current_date.weekday() in data.play_days:
-            matchday_dates[day_counter] = current_date.strftime("%Y-%m-%d")
-            day_counter += 1
-        current_date += timedelta(days=1)
+    while current_date.weekday() not in data.play_days: current_date += timedelta(days=1)
+    play_date_str = current_date.strftime("%Y-%m-%d")
 
-    db.query(models.Match).filter(models.Match.tournament_id == t.id).delete()
+    db.query(models.Match).filter(models.Match.tournament_id == t.id, models.Match.phase == next_phase_name).delete()
+    new_matches = []
+    for home, away in pairings:
+        new_matches.append(models.Match(tournament_id=t.id, home_team_id=home, away_team_id=away, matchday=100, play_date=play_date_str, phase=next_phase_name))
 
-    matches = []
-    teams = list(team_ids)
-    
-    for round_idx in range(total_rounds):
-        matchday = round_idx + 1
-        play_date = matchday_dates[matchday]
-        for i in range(num_teams // 2):
-            home = teams[i]
-            away = teams[num_teams - 1 - i]
-            if home is not None and away is not None:
-                matches.append(models.Match(tournament_id=t.id, home_team_id=home, away_team_id=away, matchday=matchday, play_date=play_date))
-        teams.insert(1, teams.pop())
-
-    if t.matchdays == 2:
-        for round_idx in range(total_rounds):
-            matchday = total_rounds + round_idx + 1
-            play_date = matchday_dates[matchday]
-            for i in range(num_teams // 2):
-                home = teams[i]
-                away = teams[num_teams - 1 - i]
-                if home is not None and away is not None:
-                    matches.append(models.Match(tournament_id=t.id, home_team_id=away, away_team_id=home, matchday=matchday, play_date=play_date))
-            teams.insert(1, teams.pop())
-
-    db.add_all(matches)
+    db.add_all(new_matches)
     db.commit()
-    return {"message": f"Calendario base generato per {len(regs)} squadre! (Totale {total_matchdays} giornate)"}
+    return {"message": f"Generato turno: {next_phase_name.upper()} con le {len(advancing_teams)} qualificate!"}
 
-# --- GESTIONE FRONTEND ---
+# --- TOOL PER TEST (SIMULA RISULTATI) ---
+@app.post("/api/admin/simulate-matches/{t_id}")
+def simulate_matches(t_id: int, db: Session = Depends(get_db)):
+    matches = db.query(models.Match).filter(models.Match.tournament_id == t_id, models.Match.is_played == False).all()
+    for m in matches:
+        m.home_score = random.randint(0, 4)
+        m.away_score = random.randint(0, 4)
+        if m.phase != "regular" and m.home_score == m.away_score: m.home_score += 1 # Evita pareggi nei playoff
+        m.is_played = True
+    db.commit()
+    return {"message": f"{len(matches)} partite simulate con successo!"}
+
 @app.get("/")
 def read_root():
     if os.path.exists("index.html"): return FileResponse("index.html")
     return {"message": "Home page non trovata."}
-
 app.mount("/", StaticFiles(directory=".", html=True), name="static")

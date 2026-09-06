@@ -6,7 +6,7 @@
     <style>
         body { background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%); background-attachment: fixed; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
         .container { max-width: 850px; margin: 0 auto; }
-        .section { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; text-align: left; }
+        .section { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; margin-bottom: 25px; text-align: left; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); }
         h2 { color: #00ff88; margin-top: 0; border-bottom: 1px solid #440066; padding-bottom: 10px; }
         input, select, button { width: 100%; box-sizing: border-box; padding: 10px; margin: 6px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; }
         button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
@@ -14,16 +14,31 @@
         .player-row { display: flex; justify-content: space-between; align-items: center; background: rgba(37, 0, 70, 0.75); padding: 10px 14px; margin: 6px 0; border-radius: 6px; border: 1px solid #440066; }
         .stat-badge { background: #1a0033; padding: 5px 10px; border-radius: 6px; border: 1px solid #d900ff; font-size: 12px; display: inline-block; margin: 4px; }
         .tournament-card { background: rgba(37,0,70,0.75); padding: 15px; margin-bottom: 10px; border: 1px solid #d900ff; border-radius: 8px; }
+        
+        /* Stili per la tabella della Classifica */
+        table.standings-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; margin-top: 15px; }
+        table.standings-table th, table.standings-table td { padding: 8px; border: 1px solid #440066; }
+        table.standings-table th { background: #1a0033; color: #00ff88; }
+        table.standings-table td:nth-child(2) { text-align: left; } /* Nome squadra allineato a sinistra */
     </style>
 </head>
 <body>
     <div class="container">
         <a href="/" style="color:#00ff88; font-weight:bold; display:block; text-align:left; margin-bottom:15px; text-decoration:none;">← Torna alla Home</a>
-        <h1 style="color:white;">👤 Dashboard Gestione VCA</h1>
+        <h1 style="color:white; margin-bottom: 30px;">👤 Dashboard Gestione VCA</h1>
         
         <div class="section">
             <h2>Area Personale & Statistiche</h2>
             <div id="personal-profile-content">Caricamento profilo...</div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Classifiche Competizioni</h2>
+            <p style="font-size: 13px; color: #ccc; margin-top: 0;">Seleziona un torneo per visualizzare la classifica aggiornata in tempo reale.</p>
+            <select id="view-standings-t" onchange="mostraClassifica()">
+                <option value="">-- Seleziona un torneo --</option>
+            </select>
+            <div id="standings-table-container"></div>
         </div>
         
         <div class="section" id="captain-club-section" style="display: none;">
@@ -39,151 +54,25 @@
     </div>
 
     <script>
+        // CONTROLLO ACCESSO UTENTE
         const user = JSON.parse(localStorage.getItem("vca_user"));
         if (!user) window.location.href = "auth.html";
 
+        // INIZIALIZZAZIONE DATI
         caricaAreaPersonale();
+        caricaElencoClassifiche();
+        
         if (user.role === "captain" || user.role === "admin") {
             document.getElementById("captain-club-section").style.display = "block";
             document.getElementById("captain-tournaments-section").style.display = "block";
             caricaProfiloClub();
         }
 
+        // FUNZIONI
         async function caricaAreaPersonale() {
             const res = await fetch(`/api/user/profile/${user.user_id}`);
             if(!res.ok) return;
             const data = await res.json();
             document.getElementById("personal-profile-content").innerHTML = `
                 <p><b>Gamertag:</b> ${data.gamertag}</p>
-                <p><b>Email:</b> ${data.email}</p>
-                <p><b>Ruolo:</b> ${data.role.toUpperCase()}</p>
-                <p><b>Club:</b> ${data.club_name}</p>
-                <div style="margin-top:10px;">
-                    <span class="stat-badge">⚽ Gol: ${data.stats.goals}</span>
-                    <span class="stat-badge">🎯 Assist: ${data.stats.assists}</span>
-                    <span class="stat-badge">🎮 Presenze: ${data.stats.matches_played}</span>
-                </div>
-            `;
-        }
-
-        async function caricaProfiloClub() {
-            const container = document.getElementById("club-content");
-            if (!user.club_id) {
-                container.innerHTML = `
-                    <p>Non hai ancora creato una squadra. Registra il tuo club:</p>
-                    <input type="text" id="new-club-name" placeholder="Nome Squadra">
-                    <select id="new-club-formation">
-                        <option value="3-1-4-2">3-1-4-2</option>
-                        <option value="3-5-2">3-5-2</option>
-                        <option value="3-4-1-2">3-4-1-2</option>
-                        <option value="4-3-3">4-3-3</option>
-                    </select>
-                    <button onclick="creaClub()">Crea Club</button>
-                `;
-            } else {
-                const resClub = await fetch(`/api/club/details/${user.club_id}`);
-                const clubData = await resClub.json();
-                const resUsers = await fetch(`/api/users/list`);
-                const allUsers = await resUsers.json();
-
-                let rosterHtml = clubData.players.map(p => `
-                    <div class="player-row">
-                        <div><b>${p.gamertag}</b> <span style="font-size:12px; color:#00ff88;">(Gol: ${p.goals})</span></div>
-                        <button onclick="rimuoviPlayer(${p.user_id})" style="width:auto; background:#ff0055; color:white; padding:4px 8px;">Rimuovi</button>
-                    </div>
-                `).join("");
-
-                let userOptions = allUsers.map(u => `<option value="${u.id}">${u.gamertag}</option>`).join("");
-
-                container.innerHTML = `
-                    <h3 style="color:#ff00ea; margin-top:0;">${clubData.name} <span style="font-size:14px; color:#ccc;">(${clubData.formation})</span></h3>
-                    <div style="margin-bottom:15px; max-height:200px; overflow-y:auto;">${rosterHtml || "<p>Nessun giocatore in rosa.</p>"}</div>
-                    <select id="selected-user-id">${userOptions}</select>
-                    <button onclick="aggiungiPlayer()">Aggiungi alla Rosa</button>
-                `;
-                
-                caricaTorneiDisponibili();
-            }
-        }
-
-        async function caricaTorneiDisponibili() {
-            const res = await fetch('/api/tournaments');
-            const tornei = await res.json();
-            let html = '';
-            
-            tornei.forEach(t => {
-                let statusMsg = "";
-                if (t.status === "open") {
-                    let btnText = (t.teams_count >= t.max_teams) ? "Posti esauriti: Entra in Lista d'Attesa" : "Iscrivi Ufficialmente il tuo Club";
-                    let btnColor = (t.teams_count >= t.max_teams) ? "#ff9900" : "#ff00ea";
-                    statusMsg = `<button onclick="iscriviClub(${t.id})" style="background: ${btnColor}; color: white;">${btnText}</button>`;
-                } else {
-                    statusMsg = `<p style="color:#ff0055; font-weight:bold; margin-top: 10px;">ISCRIZIONI CHIUSE DALL'ADMIN</p>`;
-                }
-                
-                html += `
-                <div class="tournament-card">
-                    <h4 style="margin: 0 0 5px 0; color: #00ff88;">${t.name} <span style="font-size: 12px; color: #ccc;">(${t.format_type})</span></h4>
-                    <p style="margin: 0 0 10px 0; font-size: 13px;">Ufficiali: <b>${t.teams_count} / ${t.max_teams}</b> | In Attesa: <b style="color:#ff00ea;">${t.waitlist_count}</b></p>
-                    ${statusMsg}
-                </div>`;
-            });
-            document.getElementById("tournaments-list").innerHTML = html || "<p>Nessuna competizione disponibile al momento.</p>";
-        }
-
-        async function iscriviClub(tournamentId) {
-            if(!confirm("Confermi di voler inviare la richiesta di iscrizione per questo torneo?")) return;
-            const res = await fetch("/api/tournaments/register", {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ tournament_id: tournamentId, club_id: user.club_id })
-            });
-            const data = await res.json();
-            if(res.ok) {
-                alert("✅ " + data.message);
-                caricaTorneiDisponibili();
-            } else {
-                alert("⚠️ Errore: " + data.detail);
-            }
-        }
-
-        async function creaClub() {
-            const name = document.getElementById("new-club-name").value;
-            const formation = document.getElementById("new-club-formation").value;
-            if(!name) return alert("Inserisci il nome della squadra!");
-            
-            const res = await fetch(`/api/club/create`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ name, formation, owner_id: user.user_id })
-            });
-            const data = await res.json();
-            if(!res.ok) return alert(data.detail);
-            
-            user.club_id = data.club_id;
-            user.role = "captain";
-            localStorage.setItem("vca_user", JSON.stringify(user));
-            alert("Club creato con successo!");
-            caricaProfiloClub();
-        }
-
-        async function aggiungiPlayer() {
-            const userId = document.getElementById("selected-user-id").value;
-            await fetch(`/api/club/add-player`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ club_id: user.club_id, user_id: parseInt(userId) })
-            });
-            alert("Giocatore aggiunto!");
-            caricaProfiloClub();
-        }
-
-        async function rimuoviPlayer(userId) {
-            if(!confirm("Sicuro di voler rimuovere il giocatore?")) return;
-            await fetch(`/api/club/remove-player`, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ club_id: user.club_id, user_id: userId })
-            });
-            alert("Giocatore rimosso.");
-            caricaProfiloClub();
-        }
-    </script>
-</body>
-</html>
+                <p><b>Email:</b> ${data.email}</p

@@ -1,180 +1,108 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA Group eSports - Hub Ufficiale</title>
+    <!-- Importiamo il font eSports -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-purple: #d900ff;
+            --dark-bg: #07030e;
+            --panel-bg: rgba(20, 10, 40, 0.75);
+        }
         body { 
-            background-color: #0b0118;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(120, 0, 255, 0.25) 0%, transparent 60%),
-                radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(217, 0, 255, 0.15) 0%, transparent 50%),
-                linear-gradient(135deg, #0d001a 0%, #15002b 50%, #05000a 100%);
-            background-attachment: fixed;
+            background-color: var(--dark-bg); 
+            /* Pattern a Esagoni */
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E");
             color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 30px 20px; 
-            text-align: center; 
-            position: relative;
-            overflow-x: hidden;
+            font-family: 'Rajdhani', sans-serif; 
+            margin: 0; padding: 30px 20px; text-align: center; 
         }
-
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(217, 0, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(217, 0, 255, 0.04) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
-        }
-
-        .main-container { max-width: 1000px; margin: 0 auto; }
-
+        .main-container { max-width: 1050px; margin: 0 auto; }
+        
+        /* Header HUD */
         .header { 
             display: flex; justify-content: space-between; align-items: center; 
-            background: rgba(26, 0, 51, 0.7); backdrop-filter: blur(12px); 
-            border: 1px solid rgba(217, 0, 255, 0.3); border-radius: 12px; 
-            padding: 15px 25px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); 
+            background: var(--panel-bg); backdrop-filter: blur(10px);
+            border-left: 4px solid var(--neon-green); border-right: 4px solid var(--neon-purple);
+            border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 25px; margin-bottom: 40px; 
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
         }
-        h1 { color: #d900ff; text-transform: uppercase; margin: 0; font-size: 24px; text-shadow: 0 0 15px rgba(217, 0, 255, 0.5); letter-spacing: 1px; }
-        .auth-status { font-size: 14px; color: #ccc; }
-        .auth-btn { background: #00ff88; color: black; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-weight: bold; box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); transition: 0.2s; }
-        .auth-btn:hover { background: #00cc6a; box-shadow: 0 0 15px rgba(0, 255, 136, 0.6); }
-
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left; }
-
+        h1 { color: white; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-purple); text-transform: uppercase;}
+        
+        .auth-btn { 
+            background: transparent; color: var(--neon-green); 
+            padding: 8px 18px; border: 1px solid var(--neon-green); text-decoration: none; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+            box-shadow: inset 0 0 5px rgba(0,255,136,0.2);
+        }
+        .auth-btn:hover { background: var(--neon-green); color: black; box-shadow: 0 0 15px var(--neon-green); }
+        
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; text-align: left; }
+        
+        /* Box Stile Scheda Grafica */
         .section-box { 
-            background: rgba(26, 0, 51, 0.82); backdrop-filter: blur(12px); 
-            border: 1px solid #550088; border-radius: 12px; padding: 22px; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; justify-content: space-between;
+            background: var(--panel-bg); backdrop-filter: blur(10px);
+            border-top: 2px solid var(--neon-purple); border-bottom: 2px solid var(--neon-green);
+            padding: 25px; display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s;
         }
+        .section-box:hover { transform: translateY(-5px); }
         .full-width { grid-column: 1 / -1; }
-
-        .section-title { color: #00ff88; font-size: 18px; text-transform: uppercase; border-bottom: 1px solid #440066; padding-bottom: 10px; margin-top: 0; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
         
-        .comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
-        .comp-card { background: rgba(37, 0, 70, 0.75); padding: 15px; border-radius: 8px; border: 1px solid #d900ff; transition: 0.2s; }
-        .comp-card:hover { border-color: #00ff88; box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
-        .comp-card h3 { margin: 0 0 5px 0; color: #ff00ea; font-size: 16px; }
-        .comp-type { font-size: 11px; color: #aaa; text-transform: uppercase; margin-bottom: 8px; }
+        .section-title { 
+            color: white; font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; 
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title::before { content: '>'; color: var(--neon-green); font-weight: bold; }
         
-        .action-btn { background: #00ff88; color: black; border: none; padding: 10px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; box-sizing: border-box; transition: 0.2s; }
-        .action-btn:hover { background: #00cc6a; transform: translateY(-1px); }
-        
-        .admin-box { border-color: #ff00ea; display: none; }
-        .admin-box .section-title { color: #ff00ea; }
-        
-        p { font-size: 14px; color: #ddd; line-height: 1.4; }
+        .action-btn { 
+            background: linear-gradient(90deg, var(--neon-purple) 0%, #8a00a3 100%); color: white; 
+            border: none; padding: 12px 15px; font-weight: 700; font-size: 16px; font-family: 'Rajdhani', sans-serif;
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; width: 100%; margin-top: auto; 
+            box-sizing: border-box; text-align: center; text-decoration: none; display: block;
+            transition: 0.3s; border-left: 3px solid white;
+        }
+        .action-btn:hover { box-shadow: 0 0 15px var(--neon-purple); filter: brightness(1.2); }
     </style>
 </head>
 <body>
-
     <div class="main-container">
         <div class="header">
-            <h1>VCA Group eSports</h1>
-            <div class="auth-status" id="auth-panel">
-                <a href="auth.html" class="auth-btn">Accedi / Registrati</a>
-            </div>
+            <h1>VCA ESPORTS</h1>
+            <div id="auth-panel"><a href="auth.html" class="auth-btn">Accedi / Registrati</a></div>
         </div>
-
         <div class="dashboard-grid">
-            <!-- ACCESSO ALLA DASHBOARD PERSONALE -->
-            <div class="section-box full-width" id="personal-area-box" style="display: none;">
-                <h2 class="section-title">👤 Area Personale</h2>
-                <p>Gestisci il tuo profilo e il tuo club nella pagina dedicata.</p>
-                <a href="dashboard_vca.html" class="action-btn" style="text-align: center; text-decoration: none; display: block; background: #ff00ea; color: white;">Apri Dashboard & Club</a>
+            <div class="section-box full-width" id="personal-area-box" style="display: none; border-color: var(--neon-green);">
+                <h2 class="section-title">QUARTIER GENERALE</h2>
+                <p style="color:#aaa; font-size: 16px;">Gestisci il tuo profilo, il tuo club e visualizza le statistiche ufficiali.</p>
+                <a href="dashboard_vca.html" class="action-btn" style="background: var(--neon-green); color: black; border-left: 3px solid white;">ACCEDI ALLA DASHBOARD</a>
             </div>
-
-            <!-- COMPETIZIONI ATTIVE -->
-            <div class="section-box full-width">
-                <h2 class="section-title">🏆 Competizioni Attive</h2>
-                <div class="comp-grid" id="competitions-list">
-                    <p style="color: #aaa;">Caricamento competizioni...</p>
-                </div>
-            </div>
-
-            <!-- STANZA DRAFT -->
             <div class="section-box">
-                <h2 class="section-title">🎯 Stanza Draft Live</h2>
-                <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">Area di chiamata e assegnazione in tempo reale.</p>
-                <button class="action-btn" style="background: #ff00ea; color: white;" onclick="accediDraft()">Accedi alla Stanza Draft</button>
+                <h2 class="section-title">STANZA DRAFT</h2>
+                <p style="color:#aaa; font-size: 16px;">Il mercato dei Free Agent. Candidati o cerca nuovi talenti per il tuo roster.</p>
+                <button class="action-btn" onclick="window.location.href='draft_vca.html'">ENTRA NEL DRAFT</button>
             </div>
-
-            <!-- AREA AMMINISTRAZIONE -->
-            <div class="section-box admin-box" id="admin-section">
-                <h2 class="section-title">⚙️ Regia Admin</h2>
-                <p style="color: #aaa; font-size: 13px;">Gestione utenti e referti.</p>
-                <a href="admin_vca.html" class="auth-btn" style="background: #ff00ea; color: white; display: block; text-align: center; margin-top: auto; text-decoration: none; padding: 10px;">Pannello di Controllo</a>
+            <div class="section-box admin-box" id="admin-section" style="display: none; border-top: 2px solid #ff0055;">
+                <h2 class="section-title" style="color: #ff0055;">REGIA ADMIN</h2>
+                <p style="color:#aaa; font-size: 16px;">Pannello di controllo supremo per la gestione di tornei, calendari e utenti.</p>
+                <a href="admin_vca.html" class="action-btn" style="background: #ff0055; border-left: 3px solid white;">CONSOLE ADMIN</a>
             </div>
         </div>
     </div>
-
     <script>
-        const BACKEND_URL = "https://vca-group-esports.onrender.com";
         const user = JSON.parse(localStorage.getItem("vca_user"));
-
         if (user) {
-            let emailDisplay = "";
-            if (user.role === "admin") {
-                emailDisplay = ` | <span style="color: #ff00ea; font-size: 12px;">Email: ${user.email}</span>`;
-            }
-
-            document.getElementById("auth-panel").innerHTML = `
-                EA ID: <b>${user.gamertag}</b> (${user.role.toUpperCase()})${emailDisplay}
-                <button onclick="logout()" style="background: transparent; color: #ff00ea; border: 1px solid #ff00ea; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-left: 10px;">Esci</button>
-            `;
-            
+            document.getElementById("auth-panel").innerHTML = `<span style="font-size:18px; font-weight:600; letter-spacing:1px; margin-right:15px;">ID: <span style="color:var(--neon-green);">${user.gamertag.toUpperCase()}</span></span> <button onclick="logout()" class="auth-btn" style="border-color:#ff0055; color:#ff0055;">DISCONNETTI</button>`;
             document.getElementById("personal-area-box").style.display = "flex";
-
-            if (user.role === "admin") {
-                document.getElementById("admin-section").style.display = "flex";
-            }
+            if (user.role === "admin") document.getElementById("admin-section").style.display = "flex";
         }
-
-        function logout() {
-            localStorage.removeItem("vca_user");
-            window.location.reload();
-        }
-
-        function accediDraft() {
-            if (!user) return alert("Devi prima accedere!");
-            if (user.role === "admin" || user.role === "draft_captain" || user.can_access_draft) {
-                window.location.href = "draft_vca.html";
-            } else {
-                alert("ACCESSO NEGATO: Non possiedi i permessi per accedere alla Stanza Draft.");
-            }
-        }
-
-        async function caricaCompetizioni() {
-            const res = await fetch(`${BACKEND_URL}/api/tournaments`);
-            const data = await res.json();
-            const container = document.getElementById("competitions-list");
-            container.innerHTML = "";
-
-            if (data.length === 0) {
-                container.innerHTML = "<p style='color: #aaa; font-size: 13px;'>Nessuna competizione aperta al momento.</p>";
-                return;
-            }
-
-            data.forEach(c => {
-                const card = document.createElement("div");
-                card.className = "comp-card";
-                card.innerHTML = `
-                    <h3>${c.name}</h3>
-                    <div class="comp-type">Formato: <b>${c.format_type}</b> | Squadre: <b>${c.teams_count}</b></div>
-                    <p style="font-size: 12px; color: #ccc; margin-bottom: 10px;">${c.rules}</p>
-                    ${c.format_type === 'league' ? `<button class="action-btn" style="background: #d900ff; color: white; margin-bottom: 5px; padding: 6px;" onclick="window.location.href='referto_vca.html?t_id=${c.id}'">Compila Referto</button>` : ''}
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        caricaCompetizioni();
+        function logout() { localStorage.removeItem("vca_user"); window.location.reload(); }
     </script>
 </body>
 </html>

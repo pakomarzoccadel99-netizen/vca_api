@@ -31,18 +31,9 @@ class PlayerAction(BaseModel): club_id: int; user_id: Optional[int] = None; play
 class TournamentCreate(BaseModel): name: str; format_type: str; rules: str; max_teams: int; matchdays: int; swiss_rounds: int = 0; playoff_teams: int = 0
 class CalendarGenerate(BaseModel): tournament_id: int; start_date: str; play_days: List[int]
 class TournamentRegister(BaseModel): tournament_id: int; club_id: int
-
-# Nuovi Schemi per i Referti
-class PlayerStat(BaseModel):
-    player_id: int
-    goals: int
-    assists: int
-
-class MatchSubmit(BaseModel):
-    match_id: int
-    home_score: int
-    away_score: int
-    player_stats: List[PlayerStat] = []
+class PlayerStat(BaseModel): player_id: int; goals: int; assists: int
+class MatchSubmit(BaseModel): match_id: int; home_score: int; away_score: int; player_stats: List[PlayerStat] = []
+class DraftSignup(BaseModel): role: str; user_id: int
 
 # --- API AUTH & PROFILO ---
 @app.post("/api/auth/register")
@@ -221,9 +212,9 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     next_phase_name = ""
 
     if current_phase == "regular":
-        if t.playoff_teams not in [2, 4, 8, 16, 32]: raise HTTPException(status_code=400, detail="Questo torneo non prevede una fase finale o il numero di qualificate non è valido.")
+        if t.playoff_teams not in [2, 4, 8, 16, 32]: raise HTTPException(status_code=400, detail="Numero qualificate non valido.")
         standings = calculate_standings(t.id, db)
-        if len(standings) < t.playoff_teams: raise HTTPException(status_code=400, detail="Non ci sono abbastanza squadre per generare i playoff.")
+        if len(standings) < t.playoff_teams: raise HTTPException(status_code=400, detail="Squadre insufficienti.")
         for s in standings[:t.playoff_teams]: advancing_teams.append(s["club_id"])
         
         if t.playoff_teams == 32: next_phase_name = "sedicesimi"
@@ -235,8 +226,8 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     else:
         current_phase_matches = [m for m in matches if m.phase == current_phase]
         for m in current_phase_matches:
-            if not m.is_played: raise HTTPException(status_code=400, detail=f"Devi completare tutte le partite di {current_phase} prima di avanzare.")
-            if m.home_score == m.away_score: raise HTTPException(status_code=400, detail="Nei playoff non sono ammessi pareggi! Aggiorna i referti.")
+            if not m.is_played: raise HTTPException(status_code=400, detail="Completa prima i referti del turno corrente.")
+            if m.home_score == m.away_score: raise HTTPException(status_code=400, detail="I pareggi non sono ammessi nei playoff.")
             advancing_teams.append(m.home_team_id if m.home_score > m.away_score else m.away_team_id)
         
         n = len(advancing_teams)
@@ -255,9 +246,9 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     new_matches = [models.Match(tournament_id=t.id, home_team_id=h, away_team_id=a, matchday=100, play_date=play_date_str, phase=next_phase_name) for h, a in pairings]
     db.add_all(new_matches)
     db.commit()
-    return {"message": f"Generato turno: {next_phase_name.upper()} con {len(advancing_teams)} qualificate!"}
+    return {"message": f"Turno {next_phase_name.upper()} generato!"}
 
-# --- NUOVO: GESTIONE REFERTI E PARTITE ---
+# --- GESTIONE REFERTI ---
 @app.get("/api/matches/pending/{club_id}")
 def get_pending_matches(club_id: int, db: Session = Depends(get_db)):
     matches = db.query(models.Match).filter(
@@ -281,23 +272,18 @@ def get_pending_matches(club_id: int, db: Session = Depends(get_db)):
 @app.post("/api/matches/submit")
 def submit_match(data: MatchSubmit, db: Session = Depends(get_db)):
     m = db.query(models.Match).filter(models.Match.id == data.match_id).first()
-    if not m: raise HTTPException(status_code=404, detail="Partita non trovata")
-    if m.is_played: raise HTTPException(status_code=400, detail="Il referto per questa partita è già stato inviato.")
-    
+    if m.is_played: raise HTTPException(status_code=400, detail="Referto già inviato.")
     m.home_score = data.home_score
     m.away_score = data.away_score
     m.is_played = True
-    
     for stat in data.player_stats:
         p = db.query(models.User).filter(models.User.id == stat.player_id).first()
         if p:
             p.goals += stat.goals
             p.assists += stat.assists
             p.matches_played += 1
-            
     db.commit()
-    return {"message": "Referto inviato con successo! Risultato e statistiche aggiornate."}
-
+    return {"message": "Referto confermato!"}
 
 @app.post("/api/admin/simulate-matches/{t_id}")
 def simulate_matches(t_id: int, db: Session = Depends(get_db)):
@@ -308,7 +294,30 @@ def simulate_matches(t_id: int, db: Session = Depends(get_db)):
         if m.phase != "regular" and m.home_score == m.away_score: m.home_score += 1
         m.is_played = True
     db.commit()
-    return {"message": f"{len(matches)} partite simulate con successo!"}
+    return {"message": "Simulazione completata!"}
+
+# --- NUOVO: API MERCATO DRAFT ---
+@app.post("/api/draft/signup")
+def draft_signup(data: DraftSignup, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.user_id).first()
+    if user.club_id: raise HTTPException(status_code=400, detail="Devi essere svincolato per iscriverti al draft.")
+    user.draft_role = data.role
+    db.commit()
+    return {"message": f"Candidatura come {data.role} registrata con successo!"}
+
+@app.get("/api/draft/players")
+def get_draft_players(db: Session = Depends(get_db)):
+    players = db.query(models.User).filter(models.User.draft_role != None, models.User.club_id == None).all()
+    return [{"id": p.id, "gamertag": p.gamertag, "role": p.draft_role} for p in players]
+
+@app.post("/api/draft/assign")
+def draft_assign(data: PlayerAction, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == data.player_id).first()
+    if not user or user.club_id: raise HTTPException(status_code=400, detail="Operatore non più disponibile.")
+    user.club_id = data.club_id
+    user.draft_role = None # Lo toglie dal mercato
+    db.commit()
+    return {"message": f"Giocatore {user.gamertag} ingaggiato!"}
 
 # --- GESTIONE FRONTEND ---
 @app.get("/")

@@ -1,5 +1,6 @@
 import os
 import random
+import hashlib  # <-- NUOVO: Libreria per la Sicurezza
 from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Depends
@@ -22,6 +23,11 @@ def get_db():
     try: yield db
     finally: db.close()
 
+# --- MOTORE DI SICUREZZA ---
+def hash_password(password: str):
+    """Cripta la password usando l'algoritmo SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
 # --- SCHEMI DATI ---
 class UserAuth(BaseModel): gamertag: str = None; email: str = None; login_id: str = None; password: str
 class RoleUpdate(BaseModel): user_id: int; new_role: str
@@ -35,20 +41,39 @@ class PlayerStat(BaseModel): player_id: int; goals: int; assists: int
 class MatchSubmit(BaseModel): match_id: int; home_score: int; away_score: int; player_stats: List[PlayerStat] = []
 class DraftSignup(BaseModel): role: str; user_id: int
 
-# --- API AUTH & PROFILO ---
+
+# --- API AUTH & PROFILO (AGGIORNATE CON CRITTOGRAFIA) ---
 @app.post("/api/auth/register")
 def register(data: UserAuth, db: Session = Depends(get_db)):
     if db.query(models.User).filter((models.User.gamertag == data.gamertag) | (models.User.email == data.email)).first():
         raise HTTPException(status_code=400, detail="Utente già registrato.")
-    new_user = models.User(gamertag=data.gamertag, email=data.email, password=data.password, role="user")
+    
+    # CRITTA LA PASSWORD PRIMA DI SALVARLA NEL DATABASE
+    hashed_pwd = hash_password(data.password)
+    new_user = models.User(gamertag=data.gamertag, email=data.email, password=hashed_pwd, role="user")
+    
     db.add(new_user)
     db.commit()
-    return {"message": "Registrazione ok!"}
+    return {"message": "Registrazione protetta completata!"}
 
 @app.post("/api/auth/login")
 def login(data: UserAuth, db: Session = Depends(get_db)):
     user = db.query(models.User).filter((models.User.gamertag == data.login_id) | (models.User.email == data.login_id)).first()
-    if not user or user.password != data.password: raise HTTPException(status_code=400, detail="Credenziali errate.")
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Credenziali errate.")
+        
+    hashed_input = hash_password(data.password)
+    
+    # Verifica la password
+    if user.password != hashed_input:
+        # SISTEMA DI MIGRAZIONE: Se la password vecchia nel DB è ancora in chiaro
+        if user.password == data.password:
+            user.password = hashed_input # Aggiorna silenziosamente alla versione criptata
+            db.commit()
+        else:
+            raise HTTPException(status_code=400, detail="Credenziali errate.")
+            
     return {"user_id": user.id, "gamertag": user.gamertag, "email": user.email, "role": user.role, "club_id": user.club_id}
 
 @app.get("/api/user/profile/{user_id}")
@@ -56,6 +81,7 @@ def profile(user_id: int, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     club = db.query(models.Club).filter(models.Club.id == user.club_id).first() if user.club_id else None
     return {"gamertag": user.gamertag, "email": user.email, "role": user.role, "club_name": club.name if club else "Nessuno", "stats": {"goals": user.goals, "assists": user.assists, "matches_played": user.matches_played}}
+
 
 # --- API ADMIN E UTENTI ---
 @app.post("/api/admin/set-role")
@@ -83,6 +109,7 @@ def list_users(db: Session = Depends(get_db)):
         club = db.query(models.Club).filter(models.Club.id == u.club_id).first() if u.club_id else None
         res.append({"id": u.id, "gamertag": u.gamertag, "email": u.email, "role": u.role, "club_name": club.name if club else None})
     return res
+
 
 # --- API CLUB ---
 @app.post("/api/club/create")
@@ -118,6 +145,7 @@ def remove_player(data: PlayerAction, db: Session = Depends(get_db)):
     user.club_id = None
     db.commit()
     return {"message": "Rimosso"}
+
 
 # --- API TORNEI & CALENDARIO ---
 @app.get("/api/tournaments")
@@ -236,6 +264,7 @@ def generate_next_phase(data: CalendarGenerate, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Turno {next_phase_name.upper()} generato!"}
 
+
 # --- REFERTI ---
 @app.get("/api/matches/pending/{club_id}")
 def get_pending_matches(club_id: int, db: Session = Depends(get_db)):
@@ -269,6 +298,7 @@ def simulate_matches(t_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Simulazione completata!"}
 
+
 # --- DRAFT ---
 @app.post("/api/draft/signup")
 def draft_signup(data: DraftSignup, db: Session = Depends(get_db)):
@@ -289,7 +319,8 @@ def draft_assign(data: PlayerAction, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Giocatore {user.gamertag} ingaggiato!"}
 
-# --- STATISTICHE ---
+
+# --- STATISTICHE GLOBALI ---
 @app.get("/api/stats/top-players")
 def get_top_players(db: Session = Depends(get_db)):
     users = db.query(models.User).filter((models.User.goals > 0) | (models.User.assists > 0) | (models.User.matches_played > 0)).all()
@@ -300,7 +331,7 @@ def get_top_players(db: Session = Depends(get_db)):
         return {"gamertag": p.gamertag, "club_name": club.name if club else "Free Agent", "goals": p.goals, "assists": p.assists, "matches_played": p.matches_played}
     return {"top_scorers": [format_player(p) for p in top_scorers if p.goals > 0], "top_assists": [format_player(p) for p in top_assists if p.assists > 0]}
 
-# --- NUOVO: API MATCH CENTER PUBBLICO ---
+# --- MATCH CENTER PUBBLICO ---
 @app.get("/api/tournaments/{t_id}/matches")
 def get_tournament_matches(t_id: int, db: Session = Depends(get_db)):
     matches = db.query(models.Match).filter(models.Match.tournament_id == t_id).order_by(models.Match.phase, models.Match.matchday).all()
@@ -309,15 +340,9 @@ def get_tournament_matches(t_id: int, db: Session = Depends(get_db)):
         home = db.query(models.Club).filter(models.Club.id == m.home_team_id).first()
         away = db.query(models.Club).filter(models.Club.id == m.away_team_id).first()
         res.append({
-            "id": m.id,
-            "phase": m.phase,
-            "matchday": m.matchday,
-            "play_date": m.play_date,
-            "home_team": home.name if home else "TBD",
-            "away_team": away.name if away else "TBD",
-            "home_score": m.home_score,
-            "away_score": m.away_score,
-            "is_played": m.is_played
+            "id": m.id, "phase": m.phase, "matchday": m.matchday, "play_date": m.play_date,
+            "home_team": home.name if home else "TBD", "away_team": away.name if away else "TBD",
+            "home_score": m.home_score, "away_score": m.away_score, "is_played": m.is_played
         })
     return res
 

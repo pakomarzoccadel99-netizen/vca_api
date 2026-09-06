@@ -2,80 +2,88 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VCA - Compila Referto Ufficiale</title>
+    <title>VCA - Terminale Referti</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #0d001a 0%, #15002b 50%, #08000f 100%); background-attachment: fixed; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        :root { --neon-green: #00ff88; --neon-purple: #d900ff; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 20px; text-align: center; }
         .container { max-width: 800px; margin: 0 auto; text-align: left; }
-        .box { background: rgba(26, 0, 51, 0.85); backdrop-filter: blur(12px); border: 1px solid #d900ff; border-radius: 12px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); margin-bottom: 20px; }
-        h2 { color: #00ff88; border-bottom: 1px solid #440066; padding-bottom: 10px; margin-top: 0; }
-        select, input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #550088; background: rgba(45, 0, 77, 0.9); color: white; outline: none; box-sizing: border-box; }
-        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
-        button:hover { background: #00cc6a; }
         
-        .score-box { display: flex; gap: 15px; align-items: center; justify-content: center; margin: 25px 0; background: rgba(37, 0, 70, 0.6); padding: 20px; border-radius: 8px; border: 1px solid #ff00ea; }
-        .score-box input { width: 70px; text-align: center; font-size: 28px; font-weight: bold; background: #1a0033; color: #00ff88; border: 2px solid #d900ff; margin: 0; padding: 10px; }
-        .team-name { font-size: 18px; font-weight: bold; flex: 1; text-align: center; text-transform: uppercase; }
+        .box { background: var(--panel-bg); backdrop-filter: blur(10px); border: 1px solid rgba(217, 0, 255, 0.3); border-top: 3px solid var(--neon-green); border-radius: 4px; padding: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6); margin-bottom: 25px; }
+        h2 { color: white; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        h2::before { content: '▶'; color: var(--neon-green); font-size: 14px; }
+        
+        select, input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 4px; border: 1px solid rgba(0, 255, 136, 0.3); background: rgba(10, 5, 20, 0.9); color: white; outline: none; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; }
+        input:focus, select:focus { border-color: var(--neon-green); box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+        
+        button { background: var(--neon-green); color: black; font-weight: 700; cursor: pointer; border: none; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: #00cc6a; box-shadow: 0 0 15px var(--neon-green); }
+        
+        .score-box { display: flex; gap: 20px; align-items: center; justify-content: center; margin: 30px 0; background: rgba(0, 0, 0, 0.5); padding: 25px; border-radius: 4px; border: 1px solid var(--neon-purple); box-shadow: inset 0 0 20px rgba(217, 0, 255, 0.1); }
+        .score-box input { width: 80px; text-align: center; font-size: 36px; font-weight: 700; background: transparent; color: var(--neon-green); border: none; border-bottom: 3px solid var(--neon-purple); border-radius: 0; margin: 0; padding: 10px; text-shadow: 0 0 10px var(--neon-green); }
+        .score-box input:focus { box-shadow: none; border-color: var(--neon-green); }
+        .team-name { font-size: 22px; font-weight: 700; flex: 1; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
         
         .stat-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
-        .stat-controls input { width: 80px; text-align: center; }
-        .stat-row { display: flex; gap: 10px; align-items: center; background: rgba(37, 0, 70, 0.75); padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #440066; font-size: 14px; }
-        .remove-btn { background: #ff0055; color: white; padding: 4px 10px; width: auto; font-size: 12px; }
+        .stat-controls input { width: 90px; text-align: center; }
+        .stat-row { display: flex; gap: 15px; align-items: center; background: rgba(0, 0, 0, 0.4); padding: 12px 15px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid var(--neon-purple); font-size: 16px; font-weight: 600; }
+        .remove-btn { background: transparent; border: 1px solid #ff0055; color: #ff0055; padding: 6px 12px; width: auto; font-size: 14px; }
+        .remove-btn:hover { background: #ff0055; color: white; box-shadow: 0 0 10px #ff0055; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="dashboard_vca.html" style="color:#00ff88; font-weight:bold; display:block; text-align:left; margin-bottom:15px; text-decoration:none;">← Torna alla Dashboard</a>
-        <h1 style="color:white; margin-bottom: 30px;">📝 Referto Partita Ufficiale</h1>
+        <a href="dashboard_vca.html" style="color:var(--neon-green); font-weight:700; display:block; text-align:left; margin-bottom:15px; text-decoration:none; text-transform:uppercase; letter-spacing:1px;">← TORNA AL QUARTIER GENERALE</a>
+        <h1 style="color:white; margin-bottom: 30px; text-transform:uppercase; letter-spacing:2px;">📝 TERMINALE REFERTI UFFICIALI</h1>
         
         <div class="box">
-            <h2>1. Seleziona la Partita</h2>
-            <p style="font-size: 13px; color: #ccc;">Seleziona una delle partite in calendario non ancora giocate dal tuo club.</p>
+            <h2>Seleziona Match</h2>
+            <p style="font-size: 14px; color: #aaa; margin-top:0;">Carica i dati di una partita in sospeso per il tuo roster.</p>
             <select id="match-selector" onchange="setupMatch()">
-                <option value="">-- Caricamento partite... --</option>
+                <option value="">-- Sincronizzazione calendario... --</option>
             </select>
         </div>
 
         <div id="report-section" style="display: none;">
             <div class="box">
-                <h2>2. Risultato Finale</h2>
+                <h2>Esito Incontro</h2>
                 <div class="score-box">
                     <div class="team-name" id="home-team-label">CASA</div>
                     <input type="number" id="home-score" min="0" value="0">
-                    <span style="font-size: 24px; font-weight: bold; color: #ff00ea;">-</span>
+                    <span style="font-size: 28px; font-weight: 700; color: white;">VS</span>
                     <input type="number" id="away-score" min="0" value="0">
                     <div class="team-name" id="away-team-label">TRASFERTA</div>
                 </div>
             </div>
 
             <div class="box">
-                <h2>3. Statistiche Giocatori (Opzionale)</h2>
-                <p style="font-size: 13px; color: #ccc;">Aggiungi i Gol e gli Assist ai giocatori della tua rosa che hanno partecipato all'azione.</p>
+                <h2>Database Statistiche (Opzionale)</h2>
+                <p style="font-size: 14px; color: #aaa; margin-top:0;">Registra i GOL e gli ASSIST per aggiornare le carte giocatore.</p>
                 
                 <div class="stat-controls">
                     <select id="player-selector" style="flex: 2;">
-                        <option value="">-- Seleziona Giocatore --</option>
+                        <option value="">-- Seleziona Operatore --</option>
                     </select>
-                    <input type="number" id="player-goals" min="0" placeholder="Gol" title="Gol segnati">
-                    <input type="number" id="player-assists" min="0" placeholder="Assist" title="Assist effettuati">
-                    <button onclick="addPlayerStat()" style="flex: 1; background: #ff00ea; color: white;">+ Aggiungi</button>
+                    <input type="number" id="player-goals" min="0" placeholder="Gol">
+                    <input type="number" id="player-assists" min="0" placeholder="Assist">
+                    <button onclick="addPlayerStat()" style="flex: 1; background: var(--neon-purple); color: white;">+ AGGIUNGI</button>
                 </div>
                 
-                <div id="stats-list">
-                    </div>
+                <div id="stats-list"></div>
             </div>
 
-            <button onclick="submitReport()" style="padding: 15px; font-size: 16px; margin-bottom: 40px;">✅ INVIA REFERTO UFFICIALE</button>
+            <button onclick="submitReport()" style="padding: 18px; font-size: 18px; margin-bottom: 40px; box-shadow: 0 0 15px rgba(0,255,136,0.3);">TRASMETTI DATI AL SERVER</button>
         </div>
     </div>
 
     <script>
         const user = JSON.parse(localStorage.getItem("vca_user"));
         if (!user || (user.role !== "captain" && user.role !== "admin")) {
-            alert("Accesso negato. Solo i capitani dei club possono compilare i referti.");
+            alert("Autorizzazione negata. Solo i Capitani possono accedere a questo terminale.");
             window.location.href = "dashboard_vca.html";
         }
         if (!user.club_id) {
-            alert("Non sei iscritto a nessun club.");
+            alert("Nessun club rilevato.");
             window.location.href = "dashboard_vca.html";
         }
 
@@ -84,25 +92,23 @@
         let playerStatsArray = [];
 
         async function init() {
-            // 1. Carica le partite in sospeso per il Club dell'utente
             const resM = await fetch(`/api/matches/pending/${user.club_id}`);
             pendingMatches = await resM.json();
             
             const selector = document.getElementById("match-selector");
-            selector.innerHTML = '<option value="">-- Seleziona Partita --</option>';
+            selector.innerHTML = '<option value="">-- Seleziona Match --</option>';
             if (pendingMatches.length === 0) {
-                selector.innerHTML = '<option value="">Nessuna partita da refertare al momento.</option>';
+                selector.innerHTML = '<option value="">Nessun match pendente rilevato.</option>';
                 return;
             }
             
             pendingMatches.forEach(m => {
-                let phaseLabel = m.phase === "regular" ? "Fase a Gironi" : m.phase.toUpperCase();
+                let phaseLabel = m.phase === "regular" ? "GIRONI" : m.phase.toUpperCase();
                 selector.innerHTML += `<option value="${m.match_id}">
-                    [${m.tournament_name} - ${phaseLabel}] ${m.home_team} vs ${m.away_team}
+                    [${m.tournament_name} | ${phaseLabel}] ${m.home_team} vs ${m.away_team}
                 </option>`;
             });
 
-            // 2. Carica i giocatori del Club per il menu a tendina statistiche
             const resC = await fetch(`/api/club/details/${user.club_id}`);
             const clubData = await resC.json();
             clubRoster = clubData.players;
@@ -126,7 +132,6 @@
             document.getElementById("home-team-label").innerText = match.home_team;
             document.getElementById("away-team-label").innerText = match.away_team;
             
-            // Resetta i campi
             document.getElementById("home-score").value = 0;
             document.getElementById("away-score").value = 0;
             playerStatsArray = [];
@@ -140,10 +145,9 @@
             const goals = parseInt(document.getElementById("player-goals").value) || 0;
             const assists = parseInt(document.getElementById("player-assists").value) || 0;
             
-            if (!pid) return alert("Seleziona un giocatore.");
-            if (goals === 0 && assists === 0) return alert("Inserisci almeno un gol o un assist.");
+            if (!pid) return alert("Seleziona un operatore.");
+            if (goals === 0 && assists === 0) return alert("Parametri vuoti.");
             
-            // Controlla se il giocatore è già nella lista per non avere doppioni
             const exists = playerStatsArray.find(s => s.player_id == pid);
             if (exists) {
                 exists.goals += goals;
@@ -152,11 +156,9 @@
                 playerStatsArray.push({ player_id: parseInt(pid), goals: goals, assists: assists });
             }
             
-            // Pulisci i campi
             document.getElementById("player-selector").value = "";
             document.getElementById("player-goals").value = "";
             document.getElementById("player-assists").value = "";
-            
             renderStatsList();
         }
 
@@ -167,10 +169,7 @@
 
         function renderStatsList() {
             const container = document.getElementById("stats-list");
-            if (playerStatsArray.length === 0) {
-                container.innerHTML = "";
-                return;
-            }
+            if (playerStatsArray.length === 0) { container.innerHTML = ""; return; }
             
             let html = "";
             playerStatsArray.forEach(stat => {
@@ -178,9 +177,9 @@
                 const name = player ? player.gamertag : "Sconosciuto";
                 html += `
                     <div class="stat-row">
-                        <div style="flex: 1;"><b>${name}</b></div>
-                        <div style="color: #00ff88;">⚽ Gol: <b>${stat.goals}</b></div>
-                        <div style="color: #ff00ea;">🎯 Assist: <b>${stat.assists}</b></div>
+                        <div style="flex: 1; color:white;">ID: <b>${name}</b></div>
+                        <div style="color: var(--neon-green);">⚽ GOL: <b>${stat.goals}</b></div>
+                        <div style="color: var(--neon-purple);">🎯 AST: <b>${stat.assists}</b></div>
                         <button class="remove-btn" onclick="removeStat(${stat.player_id})">X</button>
                     </div>
                 `;
@@ -193,8 +192,8 @@
             const homeScore = parseInt(document.getElementById("home-score").value) || 0;
             const awayScore = parseInt(document.getElementById("away-score").value) || 0;
             
-            if (!matchId) return alert("Seleziona una partita.");
-            if (!confirm(`Vuoi confermare il risultato di ${homeScore} a ${awayScore}? L'operazione è definitiva.`)) return;
+            if (!matchId) return alert("Seleziona un match.");
+            if (!confirm(`Confermi il referto: ${homeScore} a ${awayScore}? L'azione è irreversibile.`)) return;
 
             const payload = {
                 match_id: parseInt(matchId),
@@ -204,18 +203,16 @@
             };
 
             const res = await fetch("/api/matches/submit", {
-                method: "POST", 
-                headers: {"Content-Type": "application/json"},
+                method: "POST", headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(payload)
             });
             
             const data = await res.json();
-            
             if (res.ok) {
                 alert("✅ " + data.message);
-                window.location.href = "dashboard_vca.html"; // Torna alla dashboard dopo il referto
+                window.location.href = "dashboard_vca.html";
             } else {
-                alert("⚠️ Errore: " + data.detail);
+                alert("⚠️ Errore di sistema: " + data.detail);
             }
         }
 

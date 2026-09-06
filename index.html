@@ -3,71 +3,22 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VCA Group eSports - Hub Ufficiale</title>
-    <!-- Importiamo il font eSports -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-green: #00ff88;
-            --neon-purple: #d900ff;
-            --dark-bg: #07030e;
-            --panel-bg: rgba(20, 10, 40, 0.75);
-        }
-        body { 
-            background-color: var(--dark-bg); 
-            /* Pattern a Esagoni */
-            background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E");
-            color: white; 
-            font-family: 'Rajdhani', sans-serif; 
-            margin: 0; padding: 30px 20px; text-align: center; 
-        }
+        :root { --neon-green: #00ff88; --neon-purple: #d900ff; --neon-blue: #00d4ff; --dark-bg: #07030e; --panel-bg: rgba(20, 10, 40, 0.75); }
+        body { background-color: var(--dark-bg); background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.28' viewBox='0 0 40 69.28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32L20 5.77 0 17.32V40.41L20 51.96 40 40.41V17.32ZM20 28.86L0 17.32 20 5.77 40 17.32 20 28.86ZM0 40.41V17.32L20 28.86V51.96L0 40.41ZM40 40.41V17.32L20 28.86V51.96L40 40.41Z' fill='%23d900ff' fill-opacity='0.03' fill-rule='evenodd'/%3E"); color: white; font-family: 'Rajdhani', sans-serif; margin: 0; padding: 30px 20px; text-align: center; }
         .main-container { max-width: 1050px; margin: 0 auto; }
-        
-        /* Header HUD */
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--panel-bg); backdrop-filter: blur(10px);
-            border-left: 4px solid var(--neon-green); border-right: 4px solid var(--neon-purple);
-            border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding: 15px 25px; margin-bottom: 40px; 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
-            clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); backdrop-filter: blur(10px); border-left: 4px solid var(--neon-green); border-right: 4px solid var(--neon-purple); border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 15px 25px; margin-bottom: 40px; box-shadow: 0 0 20px rgba(0, 255, 136, 0.1); clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%); }
         h1 { color: white; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-purple); text-transform: uppercase;}
-        
-        .auth-btn { 
-            background: transparent; color: var(--neon-green); 
-            padding: 8px 18px; border: 1px solid var(--neon-green); text-decoration: none; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
-            box-shadow: inset 0 0 5px rgba(0,255,136,0.2);
-        }
+        .auth-btn { background: transparent; color: var(--neon-green); padding: 8px 18px; border: 1px solid var(--neon-green); text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; box-shadow: inset 0 0 5px rgba(0,255,136,0.2); }
         .auth-btn:hover { background: var(--neon-green); color: black; box-shadow: 0 0 15px var(--neon-green); }
-        
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; text-align: left; }
-        
-        /* Box Stile Scheda Grafica */
-        .section-box { 
-            background: var(--panel-bg); backdrop-filter: blur(10px);
-            border-top: 2px solid var(--neon-purple); border-bottom: 2px solid var(--neon-green);
-            padding: 25px; display: flex; flex-direction: column; position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s;
-        }
+        .section-box { background: var(--panel-bg); backdrop-filter: blur(10px); border-top: 2px solid var(--neon-purple); border-bottom: 2px solid var(--neon-green); padding: 25px; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s; }
         .section-box:hover { transform: translateY(-5px); }
         .full-width { grid-column: 1 / -1; }
-        
-        .section-title { 
-            color: white; font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; 
-            display: flex; align-items: center; gap: 10px;
-        }
+        .section-title { color: white; font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
         .section-title::before { content: '>'; color: var(--neon-green); font-weight: bold; }
-        
-        .action-btn { 
-            background: linear-gradient(90deg, var(--neon-purple) 0%, #8a00a3 100%); color: white; 
-            border: none; padding: 12px 15px; font-weight: 700; font-size: 16px; font-family: 'Rajdhani', sans-serif;
-            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; width: 100%; margin-top: auto; 
-            box-sizing: border-box; text-align: center; text-decoration: none; display: block;
-            transition: 0.3s; border-left: 3px solid white;
-        }
+        .action-btn { background: linear-gradient(90deg, var(--neon-purple) 0%, #8a00a3 100%); color: white; border: none; padding: 12px 15px; font-weight: 700; font-size: 16px; font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; width: 100%; margin-top: auto; box-sizing: border-box; text-align: center; text-decoration: none; display: block; transition: 0.3s; border-left: 3px solid white; }
         .action-btn:hover { box-shadow: 0 0 15px var(--neon-purple); filter: brightness(1.2); }
     </style>
 </head>
@@ -83,11 +34,20 @@
                 <p style="color:#aaa; font-size: 16px;">Gestisci il tuo profilo, il tuo club e visualizza le statistiche ufficiali.</p>
                 <a href="dashboard_vca.html" class="action-btn" style="background: var(--neon-green); color: black; border-left: 3px solid white;">ACCEDI ALLA DASHBOARD</a>
             </div>
+            
+            <!-- NUOVO: MATCH CENTER (Visibile a tutti) -->
+            <div class="section-box" style="border-top-color: var(--neon-blue);">
+                <h2 class="section-title" style="color: var(--neon-blue);">MATCH CENTER</h2>
+                <p style="color:#aaa; font-size: 16px;">Consulta il calendario ufficiale, lo storico dei risultati e i tabelloni Playoff.</p>
+                <button class="action-btn" style="background: var(--neon-blue);" onclick="window.location.href='calendario_vca.html'">VEDI CALENDARIO</button>
+            </div>
+
             <div class="section-box">
                 <h2 class="section-title">STANZA DRAFT</h2>
                 <p style="color:#aaa; font-size: 16px;">Il mercato dei Free Agent. Candidati o cerca nuovi talenti per il tuo roster.</p>
                 <button class="action-btn" onclick="window.location.href='draft_vca.html'">ENTRA NEL DRAFT</button>
             </div>
+
             <div class="section-box admin-box" id="admin-section" style="display: none; border-top: 2px solid #ff0055;">
                 <h2 class="section-title" style="color: #ff0055;">REGIA ADMIN</h2>
                 <p style="color:#aaa; font-size: 16px;">Pannello di controllo supremo per la gestione di tornei, calendari e utenti.</p>
